@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>حاسبة علم الرمل • رقعة الشطرنج الناطقة</title>
+<style>
+:root{
+  --bg:#071025; --card:#071524; --muted:#0f2136; --ink:#e6eef6;
+  --accent:#22d3ee; --accent2:#a78bfa; --ok:#10b981; --warn:#f59e0b;
+  --glass: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,var(--bg),#021022);color:var(--ink);font:500 15px/1.6 system-ui,Segoe UI,Roboto,Arial}
+.wrap{max-width:1200px;margin:18px auto;padding:18px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 30px #0008}
+h1{font-size:18px;margin:0}
+.tabs{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tab{padding:8px 12px;border-radius:10px;background:var(--glass);cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
+.tab.active{outline:2px solid var(--accent);background:linear-gradient(90deg,rgba(34,211,238,0.06),rgba(167,139,250,0.04))}
+.container{display:grid;gap:16px;margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:1000px){.grid2{grid-template-columns:0.7fr 0.3fr}}
+.card{background:linear-gradient(180deg,#051329,#031422);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03)}
+.help{font-size:13px;color:#9fb1c4}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,255,0.02);color:var(--ink);padding:8px 10px;border-radius:8px}
+.kbd{font-family:ui-monospace,monospace;background:#06131e;padding:4px 8px;border-radius:6px}
+.chess{width:100%;max-width:720px;border-radius:12px;overflow:hidden;border:6px solid rgba(255,255,255,0.02)}
+.board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:100%;height:720px}
+.sq{display:grid;place-items:center;font-size:12px;padding:6px;text-align:center;user-select:none}
+.light{background:#dfe7ee10}
+.dark{background:#0d2030}
+.piece{display:grid;place-items:center;border-radius:8px;padding:6px;background:linear-gradient(180deg,#071a2a,#021824);border:1px solid rgba(255,255,255,0.03)}
+.badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+.scroll{max-height:320px;overflow:auto;padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02)}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:60}
+.modal{width:min(920px,96%);background:#071524;border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.04);max-height:90vh;overflow:auto}
+.small{font-size:13px;color:#92a9bb}
+.footer{font-size:13px;color:#92a9bb;margin-top:12px}
+.table{width:100%;border-collapse:collapse;margin-top:8px}
+.table th,.table td{border:1px solid rgba(255,255,255,0.03);padding:6px}
+.table th{background:rgba(255,255,255,0.02)}
+.btn{cursor:pointer}
+.rumal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;background:#e6eef6}
+.rumal-dot.double{width:12px}
+
+/* ألوان خاصة للحاشية (الصف 1 و8) */
+.sq[data-rank="1"], .sq[data-rank="8"]{border:1px solid var(--accent);box-shadow:0 0 6px rgba(34,211,238,0.2)}
+/* ألوان خاصة للجنود (الصف 2 و7) */
+.sq[data-rank="2"], .sq[data-rank="7"]{border:1px solid var(--accent2);box-shadow:0 0 6px rgba(167,139,250,0.2)}
+/* ألوان خاصة للساحة (الصفوف 3-6) */
+.sq[data-rank="3"], .sq[data-rank="4"], .sq[data-rank="5"], .sq[data-rank="6"]{opacity:0.8}
+
+/* رسائل شجرة الرحمن */
+.sq.rumal-message{animation:pulse 2s infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(167,139,250,0.4)}
+  70%{box-shadow:0 0 0 10px rgba(167,139,250,0)}
+  100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="brand"><div class="logo" aria-hidden="true"></div><h1>حاسبة علم الرمل • رقعة الشطرنج الناطقة</h1></div>
+    <div class="row">
+      <button id="exportBtn" class="btn">تصدير JSON</button>
+      <button id="importBtn" class="btn">استيراد JSON</button>
+      <label class="badge small">يحفظ محليًا</label>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="input">المُدخلات</div>
+    <div class="tab" data-tab="board">الرقعة</div>
+    <div class="tab" data-tab="tables">الجداول</div>
+    <div class="tab" data-tab="pgn">تحليل PGN</div>
+    <div class="tab" data-tab="about">حول & الطاووس</div>
+  </div>
+
+  <div class="container">
+
+    <!-- INPUT -->
+    <section class="card tabpane" data-pane="input">
+      <h3>إدخال 0/1 (0 = فرد ، 1 = زوج)</h3>
+      <div class="help">أدخل 4 خانات (مثال: <span class="kbd">0101</span>). بعد الإدخال: انقر على خانة من الصف 1 أو 8 لتثبيت الشكل هناك. انقر مرتين لعرض الشرح الموسّع.</div>
+
+      <div class="row" style="margin-top:8px">
+        <label>الوضع:</label>
+        <select id="parityMode">
+          <option value="odd0">0 = فرد (مستحسن)</option>
+          <option value="odd1">1 = زوج</option>
+        </select>
+        <label class="small">المُدخل السريع:</label>
+        <input id="quickBits" placeholder="مثال: 0101" maxlength="4" style="width:120px"/>
+        <button id="quickClear">مسح</button>
+      </div>
+
+      <!-- زر تشغيل/إيقاف القراءة الصوتية -->
+      <div class="row" style="margin-top:8px">
+        <button id="ttsToggleBtn" class="btn">تشغيل قراءة AI</button>
+        <span id="ttsStatus" class="small">(متوقف)</span>
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0">
+      <h4>إنشاء البنية (الأمهات → 16 شكل)</h4>
+      <div class="row">
+        <button id="addFromInput" class="btn">إضافة (كم أم)</button>
+        <button id="randomMoms" class="btn">توليد عشوائي</button>
+        <button id="resetMoms" class="btn">إعادة الضبط</button>
+        <button id="build16" class="btn">توليد الـ16</button>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="fillEmptySquares" class="btn">ملء الفراغات بشجرة الرحمن</button>
+        <button id="analyzeAllWords" class="btn">تحليل جميع الكلمات</button>
+      </div>
+
+      <div id="momsRow" class="row" style="margin-top:8px;overflow:auto"></div>
+      <div id="resRow" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
+    </section>
+
+    <!-- BOARD -->
+    <section class="grid2">
+      <div class="card tabpane" data-pane="board" style="min-height:520px">
+        <h3>رقعة الرمل/الشطرنج</h3>
+        <div class="row">
+          <label>سمة الجنود:</label>
+          <select id="pawnTheme"><option value="grain">🌾 قمح (مضاعفات)</option><option value="atom">⚛️ ذرّ (بتّات)</option></select>
+          <label><input type="checkbox" id="ttsToggle" checked/> تفعيل الشطرنج الناطق (TTS)</label>
+        </div>
+        <div class="help small" style="margin-top:6px">انقر على خانة من الصف 1 أو 8 بعد إدخال 4 خانات لإسقاط الشكل. انقر مرتين على خانة لفتح الشرح الموسّع.</div>
+        <div class="chess" style="margin-top:10px">
+          <div class="board" id="board"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>أرضية المعلومات</h3>
+        <div id="squareInfo" class="small">اختر خانة لعرض التفاصيل (الشكل/البيت/الرموز...)</div>
+        <div style="margin-top:8px" id="infoLog" class="scroll small"></div>
+      </div>
+    </section>
+
+    <!-- TABLES -->
+    <section class="card tabpane" data-pane="tables" style="display:none">
+      <h3>قاموس الأشكال & البيوت</h3>
+      <div class="help small">يمكنك تعديل أي خلية ثم حفظ التغييرات.</div>
+      <div id="figTableWrap" style="margin-top:10px"></div>
+
+      <h4 style="margin-top:12px">البيوت 1–12 (توليد آلي بعد الـ16)</h4>
+      <div id="houseTableWrap" style="margin-top:8px"></div>
+
+      <h4 style="margin-top:12px">الأسماء الحسنى وارتباطها</h4>
+      <div id="divineNamesTable" style="margin-top:8px"></div>
+
+      <h4 style="margin-top:12px">تخت (البنش) و إشاراته</h4>
+      <div id="takhtTableWrap" style="margin-top:8px"></div>
+    </section>
+
+    <!-- PGN -->
+    <section class="card tabpane" data-pane="pgn" style="display:none">
+      <h3>تحليل ملف PGN وفق الرمل</h3>
+      <div class="row">
+        <input type="file" id="filePGN" accept=".pgn,text/plain"/>
+        <button id="btnLoadPGN" class="btn">تحميل</button>
+        <button id="btnSample" class="btn">مثال PGN</button>
+      </div>
+      <textarea id="pgnText" rows="6" style="width:100%;margin-top:8px" placeholder="الصق PGN هنا"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="analyzePGN" class="btn">حلّل وفق الرمل</button>
+      </div>
+      <div id="pgnLog" class="scroll small" style="margin-top:8px"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="card tabpane" data-pane="about" style="display:none">
+      <h3>حول الربط بسلسلة الشيخ طاووس</h3>
+      <p class="small">وضعت ملخّصًا من مصادر عامة لعلم الرمل (الأمهات → 16 شكل → البيوت → العناصر والكواكب) كمرجع للشروحات داخل الـmodal. إن رغبت اقتباسات حرفية من فيديوهاته أدرجها هنا (أو الصق الـtranscript في الحقل الخاص داخل كل شاشة موسّعة) وسيتم عرضها مع إشارة زمنية.</p>
+      <h4>ملخص نقاط شائعة في سلسلة "علم الرمل" (مُجمّع)</h4>
+      <ul class="small">
+        <li>خطوات العمل: استخراج الأمهات (4) → توليد البنات/نواتج → الوصول إلى 16 شكلًا تفسيرياً.</li>
+        <li>ترتبط الأشكال بالعناصر الأربعة (نار/تراب/هواء/ماء) وبكواكب/مؤثرات سماوية لتحديد الطابع.</li>
+        <li>البيوت تُستخدم للإشارة إلى مجالات الحياة (نفس، مال، عمل، سفر، إلخ).</li>
+        <li>توجد مدارس مختلفة (الزناتي، إدريس، محلية)؛ لذا التطبيق قابل للتعديل والاحتفاظ بوصفك الخاص.</li>
+        <li>الـ "تخت" (البنش) يُستخدم لتحديد المجالات الرئيسية في الحياة وفقًا لقيم الأرقام.</li>
+      </ul>
+      <h4>علم الرمل: استخداماته</h4>
+      <ul class="small">
+        <li>التنبؤ بالمستقبل: تحليل الأرقام لفهم الاتجاهات المستقبلية.</li>
+        <li>العلاج الروحي: استخدام الأسماء الحسنى والآيات القرآنية لعلاج المشاكل.</li>
+        <li>الاستشارة: مساعدة الأشخاص في اتخاذ القرارات المهمة.</li>
+        <li>التنمية الذاتية: فهم نقاط القوة والضعف في الشخص.</li>
+        <li>التوصل إلى الحكمة: من خلال تحليل الأرقام والرموز.</li>
+      </ul>
+      <h4>إضافة نص/Transcript للفيديو (لطاووس)</h4>
+      <div class="small">لإدراج اقتباسات حرفية من الفيديو: الصق نص الـtranscript هنا وسيظهر داخل الشرح الموسّع عند الطلب.</div>
+      <textarea id="videoTranscript" rows="6" style="width:100%;margin-top:8px" placeholder="الصق هنا Transcript للفيديو إن أردت اقتباسات حرفية..."></textarea>
+      <div style="margin-top:8px" class="row">
+        <button id="applyTranscript" class="btn">احفظ النص في القاعدة</button>
+      </div>
+    </section>
+
+    <div class="footer">النسخة المكتملة — يمكنك تعديل القواميس داخل التطبيق. حفظ محلي: نعم. لا يتم إرسال بيانات للخارج.</div>
+  </div>
+</div>
+
+<!-- Modal للشرح الموسع -->
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="modalTitle">شرح الشكل</h3>
+      <div><button id="modalClose" class="btn">إغلاق</button></div>
+    </div>
+    <div id="modalBody" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<input type="file" id="jsonIn" accept="application/json" style="display:none"/>
+<script>
+/* ---------- البيانات الأساسية ---------- */
+// الأسماء الحسنى مع ربطها بالأشكال والبيوت
+const DIVINE_NAMES = [
+  { name: "الرحمن", abjad: 298, meaning: "المنعم بالرحمة على جميع الخلق", 
+    associatedForms: ["الشمس", "الحمل", "الأسد"], 
+    associatedHouse: 1,
+    secretMessage: "السر: ابدأ أعمالك بالرحمة وستجد الخير في كل تحركاتك" },
+  { name: "الرحيم", abjad: 290, meaning: "المنعم بالرحمة على المؤمنين في الآخرة", 
+    associatedForms: ["القمر", "السرطان", "الحوت"], 
+    associatedHouse: 4,
+    secretMessage: "السر: استعن بالرحمة في علاقاتك الأسرية وستجد الدعم من حيث لا تحتسب" },
+  { name: "الملك", abjad: 90, meaning: "المالك المتصرف في المملكة", 
+    associatedForms: ["الجدي", "الثور", "العقرب"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب الملكوت في أعمالك المهنية وستحظى بالمكانة المرموقة" },
+  { name: "القدوس", abjad: 170, meaning: "المنزه عن النقائص", 
+    associatedForms: ["الشمس", "الجوزاء", "الدلو"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب القداسة في تفكيرك وستجد الوضوح في قراراتك" },
+  { name: "السلام", abjad: 136, meaning: "المنزه عن العيوب والآفات", 
+    associatedForms: ["السرطان", "القوس", "السمك"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب السلام في قلبك وستجد الراحة في كل تحركاتك" },
+  { name: "المؤمن", abjad: 131, meaning: "المؤمن بالخلق وإظهار الصدق", 
+    associatedForms: ["الحمل", "الجوزاء", "القوس"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الإيمان في كل عمل وستجد الدعم من حيث لا تحتسب" },
+  { name: "المهيمن", abjad: 145, meaning: "الحافظ على خلقه", 
+    associatedForms: ["العقرب", "الثور", "الدلو"], 
+    associatedHouse: 3,
+    secretMessage: "السر: اطلب الحفظ في أمورك وستجد التوفيق في كل تحركاتك" },
+  { name: "العزيز", abjad: 111, meaning: "ذو العزة الذي لا يُذل", 
+    associatedForms: ["الأسد", "العقرب", "القوس"], 
+    associatedHouse: 5,
+    secretMessage: "السر: اطلب العزّة في قوتك وستجد التفوق في كل تحركاتك" },
+  { name: "الجبار", abjad: 206, meaning: "الذي يُصلح ما يُعطّل", 
+    associatedForms: ["الثور", "العقرب", "السمك"], 
+    associatedHouse: 6,
+    secretMessage: "السر: اطلب القوة في إصلاح أخطائك وستجد العون في كل تحركاتك" },
+  { name: "المتكبر", abjad: 661, meaning: "الذي لا يُضاهيه أحد في عظمة", 
+    associatedForms: ["الأسد", "الجدي", "الدلو"], 
+    associatedHouse: 7,
+    secretMessage: "السر: اطلب العظمة في تواضعك وستجد الفخر في كل تحركاتك" },
+  { name: "الخالق", abjad: 145, meaning: "الذي يبدع الخلق من عدم", 
+    associatedForms: ["الحمل", "الجوزاء", "الدلو"], 
+    associatedHouse: 1,
+    secretMessage: "السر: اطلب الإبداع في أعمالك وستجد الخلق الجديد في كل تحركاتك" },
+  { name: "البارئ", abjad: 203, meaning: "الذي يُصلح ويبدع الخلق", 
+    associatedForms: ["السرطان", "الجوزاء", "السمك"], 
+    associatedHouse: 4,
+    secretMessage: "السر: اطلب الابتداع في حل مشاكلك وستجد الحلول المبتكرة" },
+  { name: "المصور", abjad: 1190, meaning: "الذي يُصوّر الخلق كيف يشاء", 
+    associatedForms: ["الدلو", "الجدي", "العقرب"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب التنويع في طرقك وستجد التناسب في كل تحركاتك" },
+  { name: "الغفار", abjad: 1026, meaning: "الكثيف المغفرة", 
+    associatedForms: ["السمك", "العقرب", "السرطان"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب المغفرة في أخطائك وستجد العفو في كل تحركاتك" },
+  { name: "القهار", abjad: 325, meaning: "الذي لا يُقهر", 
+    associatedForms: ["العقرب", "الأسد", "القوس"], 
+    associatedHouse: 5,
+    secretMessage: "السر: اطلب القهر في التغلب على عوائقبك وستجد النصر في كل تحركاتك" },
+  { name: "الوهاب", abjad: 14, meaning: "المنعم بالنعم بلا استحقاق", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب العطاء بلا مقابل وستجد الهبات في كل تحركاتك" },
+  { name: "الرزاق", abjad: 1050, meaning: "المنعم على جميع خلقه", 
+    associatedForms: ["الثور", "الجدي", "السمك"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب الرزق في جهودك وستجد الكفاية في كل تحركاتك" },
+  { name: "الفتاح", abjad: 489, meaning: "الذي يفتح المغاليق", 
+    associatedForms: ["القوس", "الجوزاء", "الحمل"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الفتح في عوائقك وستجد المخارج في كل تحركاتك" },
+  { name: "العليم", abjad: 150, meaning: "العليم بكل شيء", 
+    associatedForms: ["الدلو", "الجوزاء", "الثور"], 
+    associatedHouse: 3,
+    secretMessage: "السر: اطلب العلم في كل أمر وستجد المعرفة في كل تحركاتك" },
+  { name: "القابض", abjad: 152, meaning: "الذي يقبض الأرواح والأرزاق", 
+    associatedForms: ["العقرب", "الثور", "الجدي"], 
+    associatedHouse: 6,
+    secretMessage: "السر: اطلب القبض على أخطاءك وستجد التصحيح في كل تحركاتك" },
+  { name: "الباسط", abjad: 102, meaning: "الذي يبسط الرزق", 
+    associatedForms: ["السمك", "القوس", "الدلو"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب البسط في رزقك وستجد الوفاء في كل تحركاتك" },
+  { name: "الخافض", abjad: 146, meaning: "الذي يخفض الدرجات", 
+    associatedForms: ["الجدي", "الثور", "العقرب"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب الخفض في غرورك وستجد الرفعة في كل تحركاتك" },
+  { name: "الرافع", abjad: 306, meaning: "الذي يرفع الدرجات", 
+    associatedForms: ["الحمل", "القوس", "الأسد"], 
+    associatedHouse: 1,
+    secretMessage: "السر: اطلب الرفع بعملك وستجد التفوق في كل تحركاتك" },
+  { name: "المعز", abjad: 107, meaning: "المُعلي الدرجات", 
+    associatedForms: ["الأسد", "الجدي", "الدلو"], 
+    associatedHouse: 7,
+    secretMessage: "السر: اطلب العزّة في إيمانك وستجد الرفعة في كل تحركاتك" },
+  { name: "المذل", abjad: 77, meaning: "المُدِل الدرجات", 
+    associatedForms: ["العقرب", "الثور", "السمك"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب الذل في توبتك وستجد العزّة في كل تحركاتك" },
+  { name: "السميع", abjad: 145, meaning: "الذي يسمع جميع الأصوات", 
+    associatedForms: ["الدلو", "الجوزاء", "السمك"], 
+    associatedHouse: 3,
+    secretMessage: "السر: اطلب السماع في توجيهاتك وستجد الارشاد في كل تحركاتك" },
+  { name: "البصير", abjad: 212, meaning: "الذي يرى جميع الأشياء", 
+    associatedForms: ["الدلو", "العقرب", "السمك"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب البصر في أفعالك وستجد الرشد في كل تحركاتك" },
+  { name: "الحكم", abjad: 68, meaning: "الذي يحكم بين خلقه", 
+    associatedForms: ["الميزان", "الجوزاء", "الدلو"], 
+    associatedHouse: 7,
+    secretMessage: "السر: اطلب الحكم في خصوماتك وستجد العدل في كل تحركاتك" },
+  { name: "العدل", abjad: 104, meaning: "المنزه عن الظلم", 
+    associatedForms: ["الميزان", "الثور", "الجدي"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب العدل في أفعالك وستجد التوازن في كل تحركاتك" },
+  { name: "اللطيف", abjad: 139, meaning: "الذي ينعم على عباده لطفاً", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب اللطف في تعاملك وستجد الرضا في كل تحركاتك" },
+  { name: "الخبير", abjad: 1418, meaning: "العليم ببواطن الأمور", 
+    associatedForms: ["العقرب", "السمك", "الدلو"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب الخبرة في أعمالك وستجد الحكمة في كل تحركاتك" },
+  { name: "الحليم", abjad: 78, meaning: "الذي لا يعاجل بالعقاب", 
+    associatedForms: ["السمك", "السرطان", "الحوت"], 
+    associatedHouse: 4,
+    secretMessage: "السر: اطلب الحلم في ردود أفعالك وستجد الهدوء في كل تحركاتك" },
+  { name: "العظيم", abjad: 1118, meaning: "ذو العظمة التي لا تُحصى", 
+    associatedForms: ["الجدي", "الأسد", "القوس"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب العظمة في أفعالك وستجد المجد في كل تحركاتك" },
+  { name: "الغفور", abjad: 1286, meaning: "الكثير المغفرة", 
+    associatedForms: ["السمك", "العقرب", "السرطان"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب المغفرة في أخطائك وستجد العفو في كل تحركاتك" },
+  { name: "الشكور", abjad: 526, meaning: "المكافئ على القليل", 
+    associatedForms: ["السمك", "القوس", "الدلو"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب الشكر في نعمك وستجد الزيادة في كل تحركاتك" },
+  { name: "العلي", abjad: 160, meaning: "الرفيع عن المكان", 
+    associatedForms: ["الجدي", "الدلو", "الحمل"], 
+    associatedHouse: 1,
+    secretMessage: "السر: اطلب العلو في همتك وستجد الرفعة في كل تحركاتك" },
+  { name: "الكبير", abjad: 232, meaning: "الذي لا يُقاس بغيره", 
+    associatedForms: ["الجدي", "العقرب", "القوس"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب الكبرياء في عبادتك وستجد العظمة في كل تحركاتك" },
+  { name: "الحفيظ", abjad: 1408, meaning: "الحافظ لجميع الأشياء", 
+    associatedForms: ["الجدي", "الثور", "العقرب"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب الحفظ في نعمك وستجد الدوام في كل تحركاتك" },
+  { name: "المقيت", abjad: 570, meaning: "المقدر للأرزاق", 
+    associatedForms: ["الجدي", "الثور", "السمك"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب التقدير في خططك وستجد الوفاء في كل تحركاتك" },
+  { name: "الحبيب", abjad: 8, meaning: "المحبوب من عباده", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب المحبة في تعاملك وستجد القبول في كل تحركاتك" },
+  { name: "الواحد", abjad: 13, meaning: "الذي لا شريك له", 
+    associatedForms: ["الشمس", "الحمل", "الأسد"], 
+    associatedHouse: 1,
+    secretMessage: "السر: اطلب الوحدة في تفكيرك وستجد الاتساق في كل تحركاتك" },
+  { name: "الصمد", abjad: 133, meaning: "الذي يصمد له الخلق", 
+    associatedForms: ["الشمس", "الجدي", "القوس"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الصمود في أزماتك وستجد القوة في كل تحركاتك" },
+  { name: "القادر", abjad: 305, meaning: "القادر على كل شيء", 
+    associatedForms: ["الحمل", "القوس", "الأسد"], 
+    associatedHouse: 5,
+    secretMessage: "السر: اطلب القوة في تحركاتك وستجد الإنجاز في كل تحركاتك" },
+  { name: "المقتدر", abjad: 524, meaning: "الذي يقدر الأمور", 
+    associatedForms: ["العقرب", "القوس", "الجدي"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب القدرة في تحدياتك وستجد الحلول في كل تحركاتك" },
+  { name: "المقدم", abjad: 134, meaning: "الذي يقدم من يشاء", 
+    associatedForms: ["الحمل", "القوس", "الدلو"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب التقديم في أعمالك وستجد التقدم في كل تحركاتك" },
+  { name: "المؤخر", abjad: 1003, meaning: "الذي يؤخر من يشاء", 
+    associatedForms: ["العقرب", "السمك", "الثور"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب التأخير في قراراتك وستجد التريث في كل تحركاتك" },
+  { name: "الأول", abjad: 37, meaning: "السابق بذاته", 
+    associatedForms: ["الشمس", "الحمل", "القوس"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الأولية في أعمالك وستجد السبق في كل تحركاتك" },
+  { name: "الآخر", abjad: 541, meaning: "الباقي بذاته", 
+    associatedForms: ["العقرب", "السمك", "الجدي"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب البقاء في أعمالك وستجد الأثر الدائم في كل تحركاتك" },
+  { name: "الظاهر", abjad: 1006, meaning: "الظاهر بذاته", 
+    associatedForms: ["الشمس", "الدلو", "القوس"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب الظهور في أعمالك وستجد الوضوح في كل تحركاتك" },
+  { name: "الباطن", abjad: 52, meaning: "الخفي عن الأبصار", 
+    associatedForms: ["العقرب", "السمك", "السرطان"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب الباطن في تفكيرك وستجد العمق في كل تحركاتك" },
+  { name: "الوالي", abjad: 47, meaning: "المتولي أمور خلقه", 
+    associatedForms: ["الجدي", "الثور", "السمك"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب الولاية في قراراتك وستجد التوفيق في كل تحركاتك" },
+  { name: "المتعالي", abjad: 162, meaning: "المتعالي عن صفات المخلوقين", 
+    associatedForms: ["الشمس", "الجدي", "القوس"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب العلو في همتك وستجد الرفعة في كل تحركاتك" },
+  { name: "البر", abjad: 202, meaning: "المنعم بالبر", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 4,
+    secretMessage: "السر: اطلب البرّ في تعاملك وستجد الرضا في كل تحركاتك" },
+  { name: "التواب", abjad: 409, meaning: "الذي يقبل التوبة", 
+    associatedForms: ["السمك", "العقرب", "السرطان"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب التوبة في أخطائك وستجد العفو في كل تحركاتك" },
+  { name: "المنتقم", abjad: 605, meaning: "الذي ينتقم من الظالمين", 
+    associatedForms: ["العقرب", "الأسد", "القوس"], 
+    associatedHouse: 5,
+    secretMessage: "السر: اطلب الانتقام من أخطائك وستجد التصحيح في كل تحركاتك" },
+  { name: "العفو", abjad: 156, meaning: "العفو عن الذنوب", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب العفو في تعاملك وستجد المغفرة في كل تحركاتك" },
+  { name: "الرؤوف", abjad: 281, meaning: "الرحيم بالعباد", 
+    associatedForms: ["السمك", "الحوت", "السرطان"], 
+    associatedHouse: 4,
+    secretMessage: "السر: اطلب الرأفة في تعاملك وستجد المحبة في كل تحركاتك" },
+  { name: "مالك الملك", abjad: 136, meaning: "مالك جميع الممالك", 
+    associatedForms: ["الشمس", "الجدي", "الأسد"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب الملك في أعمالك وستجد السيطرة في كل تحركاتك" },
+  { name: "ذو الجلال والإكرام", abjad: 310, meaning: "ذو العظمة والإكرام", 
+    associatedForms: ["الشمس", "الجدي", "الأسد"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب الجلال في عبادتك وستجد الكرامة في كل تحركاتك" },
+  { name: "المقسط", abjad: 204, meaning: "العادل في حكمه", 
+    associatedForms: ["الميزان", "الثور", "الجدي"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب القسط في أفعالك وستجد العدل في كل تحركاتك" },
+  { name: "الجامع", abjad: 56, meaning: "الجامع لخلقه يوم القيامة", 
+    associatedForms: ["الحمل", "الدلو", "القوس"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الجمع في أعمالك وستجد الاتساق في كل تحركاتك" },
+  { name: "الغني", abjad: 1045, meaning: "الغني عن جميع خلقه", 
+    associatedForms: ["الجدي", "الثور", "السمك"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب الغنى في نفسك وستجد الاستغناء في كل تحركاتك" },
+  { name: "المغني", abjad: 109, meaning: "المغني عباده", 
+    associatedForms: ["السمك", "القوس", "الدلو"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب الغنى في رزقك وستجد الكفاية في كل تحركاتك" },
+  { name: "المانع", abjad: 134, meaning: "المانع من الشر", 
+    associatedForms: ["العقرب", "الثور", "الجدي"], 
+    associatedHouse: 10,
+    secretMessage: "السر: اطلب المنع في أخطائك وستجد الحفظ في كل تحركاتك" },
+  { name: "الضار", abjad: 208, meaning: "الضار بالناس بمعصيتهم", 
+    associatedForms: ["العقرب", "الأسد", "القوس"], 
+    associatedHouse: 5,
+    secretMessage: "السر: اطلب الضر في أخطائك وستجد التصحيح في كل تحركاتك" },
+  { name: "النافع", abjad: 156, meaning: "النافع للعباد", 
+    associatedForms: ["السمك", "القوس", "الدلو"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب النفع في أعمالك وستجد الفائدة في كل تحركاتك" },
+  { name: "النور", abjad: 256, meaning: "المنير للقلوب", 
+    associatedForms: ["الشمس", "الدلو", "القوس"], 
+    associatedHouse: 11,
+    secretMessage: "السر: اطلب النور في فهمك وستجد الوضوح في كل تحركاتك" },
+  { name: "الهادي", abjad: 20, meaning: "الهادي إلى الصراط المستقيم", 
+    associatedForms: ["الحمل", "القوس", "الدلو"], 
+    associatedHouse: 9,
+    secretMessage: "السر: اطلب الهداية في دربك وستجد الصواب في كل تحركاتك" },
+  { name: "البديع", abjad: 62, meaning: "الذي لا شبيه له", 
+    associatedForms: ["الحمل", "الدلو", "السمك"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب الابداع في أعمالك وستجد التميز في كل تحركاتك" },
+  { name: "الباقي", abjad: 66, meaning: "الباقي بعد فناء الخلق", 
+    associatedForms: ["الشمس", "الجدي", "العقرب"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب البقاء في أعمالك وستجد الأثر الدائم في كل تحركاتك" },
+  { name: "الوارث", abjad: 707, meaning: "الوارث لل đất والسموات", 
+    associatedForms: ["العقرب", "السمك", "الجدي"], 
+    associatedHouse: 8,
+    secretMessage: "السر: اطلب الوارث في أعمالك وستجد الأثر الدائم في كل تحركاتك" },
+  { name: "الرشيد", abjad: 514, meaning: "الهادي إلى الصواب", 
+    associatedForms: ["الدلو", "الجوزاء", "السمك"], 
+    associatedHouse: 12,
+    secretMessage: "السر: اطلب الرشاد في قراراتك وستجد الصواب في كل تحركاتك" },
+  { name: "الصبور", abjad: 298, meaning: "الذي لا يستعجل بالعقاب", 
+    associatedForms: ["الجدي", "الثور", "السمك"], 
+    associatedHouse: 2,
+    secretMessage: "السر: اطلب الصبر في مصائبك وستجد العون في كل تحركاتك" }
+];
+
+// السور القرآنية مع ربطها بالخانات
+const QURAN_SURAH = [
+  { number: 1, name: "الفاتحة", verses: 7, type: "مكية", 
+    associatedSquares: ["a1", "h8", "e4"], 
+    geomanticSignificance: "الربط بين البدايات والفرص الجديدة" },
+  { number: 2, name: "البقرة", verses: 286, type: "مدنية", 
+    associatedSquares: ["b1", "g8", "d4"], 
+    geomanticSignificance: "الاستقرار المالي والروحي" },
+  { number: 3, name: "آل عمران", verses: 200, type: "مدنية", 
+    associatedSquares: ["c1", "f8", "c4"], 
+    geomanticSignificance: "العلاقات العائلية والشراكات" },
+  { number: 4, name: "النساء", verses: 176, type: "مدنية", 
+    associatedSquares: ["d1", "e8", "b4"], 
+    geomanticSignificance: "البيت والأسرة والجذور" },
+  { number: 5, name: "المائدة", verses: 120, type: "مدنية", 
+    associatedSquares: ["e1", "d8", "a4"], 
+    geomanticSignificance: "الإبداع والمرح وتحقيق الرغبات" },
+  { number: 6, name: "الأنعام", verses: 165, type: "مكية", 
+    associatedSquares: ["f1", "c8", "h4"], 
+    geomanticSignificance: "الصحة والعمل والروتين اليومي" },
+  { number: 7, name: "الأعراف", verses: 206, type: "مكية", 
+    associatedSquares: ["g1", "b8", "g4"], 
+    geomanticSignificance: "العلاقات والشراكات والعقود" },
+  { number: 8, name: "الأنفال", verses: 75, type: "مدنية", 
+    associatedSquares: ["h1", "a8", "f4"], 
+    geomanticSignificance: "التحولات والموارد المشتركة" },
+  { number: 9, name: "التوبة", verses: 129, type: "مدنية", 
+    associatedSquares: ["a2", "h7", "e5"], 
+    geomanticSignificance: "السفر والفلسفة والتعليم العالي" },
+  { number: 10, name: "يونس", verses: 109, type: "مكية", 
+    associatedSquares: ["b2", "g7", "d5"], 
+    geomanticSignificance: "العمل والسمعة والطموح" },
+  { number: 11, name: "هود", verses: 123, type: "مكية", 
+    associatedSquares: ["c2", "f7", "c5"], 
+    geomanticSignificance: "الأصدقاء والأهداف والرغبات" },
+  { number: 12, name: "يوسف", verses: 111, type: "مكية", 
+    associatedSquares: ["d2", "e7", "b5"], 
+    geomanticSignificance: "الأسرار والخوف والروحانية" },
+  { number: 112, name: "الإخلاص", verses: 4, type: "مكية", 
+    associatedSquares: ["d1", "e8", "c3"], 
+    geomanticSignificance: "التوحيد والوضوح في القرارات" }
+];
+
+/* ---------- بيانات مبدئية (قابلة للتعديل) ---------- */
+/* كل صف: [bits (قياسي: 1=فرد), arabicName, latin, element, planet, sign, quality, note] */
+const DEFAULT_FIGS = [
+  ['1111','الطريق/الانصراف','Via','ماء','القمر','—','تغيّر','حركة وتحوّل'],
+  ['0000','اجتماع','Conjunctio','هواء','عطارد','—','اتصال','ربط ووصل'],
+  ['1010','حزن','Tristitia','تراب','زحل','—','هبوط','ثقل وثبات'],
+  ['0101','فرح','Laetitia','نار','المشتري','—','نشاط','فرح وصعود'],
+  ['1000','العقاب','Acquisitio','هواء','المشتري','—','نماء','زيادة وربح'],
+  ['0111','انقباض','Amissio','ماء','الزهرة','—','نقص','فقد وخسارة'],
+  ['1100','سجن','Carcer','تراب','زحل','—','قيد','حدود ومنع'],
+  ['0011','سماك','Albus','هواء','عطارد','—','نقاء','اعتدال وعقل'],
+  ['1011','طريق يسير','Puer','نار','المريخ','—','حدة','جرأة وحسم'],
+  ['0100','المرأة','Puella','ماء','الزهرة','—','لطافة','ميل وجمال'],
+  ['0010','جمهور','Populus','ماء','القمر','—','جمع','جماعة وعامة'],
+  ['1101','الشيخ','Rubeus','نار','المريخ','—','اضطراب','انفعال وخطر'],
+  ['0110','الرأس','Caput D.','تراب','العقدة الشمالية','—','بدء','ابتداء ودخول'],
+  ['1001','الذنب','Cauda D.','نار','العقدة الجنوبية','—','ختام','انصراف وخروج'],
+  ['1110','فورتيونا الكبرى','Fortuna Major','نار','الشمس','—','قوة','نصر وثبات'],
+  ['0001','فورتيونا الصغرى','Fortuna Minor','نار','القمر','—','عابر','قوة مؤقتة']
+];
+
+// تعريف أشكال الرمل الـ 16 مع تفاصيل إضافية
+const RUMAL_FORMS = [
+  { 
+    name: "الحمل", 
+    pattern: [1, 1, 1, 1], 
+    meaning: "بداية جديدة، قوة، طموح",
+    element: "ناري",
+    planet: "المريخ",
+    house: "البيت الأول: شخصية الفرد وأفعاله",
+    message: "الوقت مناسب لبدء مشاريع جديدة، أظهر الشجاعة وواجه التحديات، اعتمد على طاقتك الداخلية لتحقيق الأهداف"
+  },
+  { 
+    name: "الثور", 
+    pattern: [2, 1, 1, 1], 
+    meaning: "استقرار، صبر، مثابرة",
+    element: "ترابي",
+    planet: "الزهرة",
+    house: "البيت الثاني: الأموال والموارد",
+    message: "ركز على بناء أساس متين، كن صبوراً مع أموالك، استثمر في الموارد التي تدوم طويلاً، تجنب الاستعجال"
+  },
+  { 
+    name: "الجوزاء", 
+    pattern: [1, 2, 1, 1], 
+    meaning: "اتصال، تواصل، تعلم",
+    element: "هوائي",
+    planet: "عطارد",
+    house: "البيت الثالث: التعليم والاتصال",
+    message: "استغل مهاراتك التواصلية، ابحث عن معرفة جديدة، تواصل مع الآخرين، اكتب وشارك أفكارك، تجنب التشتت"
+  },
+  { 
+    name: "السرطان", 
+    pattern: [2, 2, 1, 1], 
+    meaning: "عاطفة، ذاكرة، حماية",
+    element: "مائي",
+    planet: "القمر",
+    house: "البيت الرابع: المنزل والأسرة",
+    message: "ركز على علاقاتك الأسرية، اهتم ببيئتك المنزلية، استخدم ذاكرتك للاستفادة من الدروس السابقة، ابحث عن الأمان العاطفي"
+  },
+  { 
+    name: "الأسد", 
+    pattern: [1, 1, 2, 1], 
+    meaning: "قيادية، إبداع، ثقة",
+    element: "ناري",
+    planet: "الشمس",
+    house: "البيت الخامس: الإبداع والمرح",
+    message: "اظهر إبداعك، اثق بنفسك، استمتع بوقتك، تولى القيادة في المشاريع الإبداعية، تجنب الغرور"
+  },
+  { 
+    name: "العذراء", 
+    pattern: [2, 1, 2, 1], 
+    meaning: "تنظيم، تحليل، دقة",
+    element: "ترابي",
+    planet: "عطارد",
+    house: "البيت السادس: العمل والصحة",
+    message: "ركز على التفاصيل، نظم وقتك، اهتم بصحتك، تحلل المشاكل بدقة، تجنب الكمالية المفرطة"
+  },
+  { 
+    name: "الميزان", 
+    pattern: [1, 2, 2, 1], 
+    meaning: "توازن، عدالة، دبلوماسية",
+    element: "هوائي",
+    planet: "الزهرة",
+    house: "البيت السابع: العلاقات والشراكات",
+    message: "ابحث عن التوازن في علاقاتك، كن عادلاً، استخدم مهاراتك الدبلوماسية، تجنب تجنب المواجهات"
+  },
+  { 
+    name: "العقرب", 
+    pattern: [2, 2, 2, 1], 
+    meaning: "قوة، تحول، غموض",
+    element: "مائي",
+    planet: "المريخ",
+    house: "البيت الثامن: التحولات والموارد المشتركة",
+    message: "استعد للتغييرات العميقة، ابحث عن الحقيقة الكامنة، تأقلم مع التحولات، تجنب التلاعب بالآخرين"
+  },
+  { 
+    name: "القوس", 
+    pattern: [1, 1, 1, 2], 
+    meaning: "استكشاف، تفاؤل، حكمة",
+    element: "ناري",
+    planet: "المشتري",
+    house: "البيت التاسع: السفر والفلسفة",
+    message: "استكشف آفاقاً جديدة، ابحث عن الحكمة، تفائل بالمستقبل، تجنب التسرع في الاستنتاجات"
+  },
+  { 
+    name: "الجدي", 
+    pattern: [2, 1, 1, 2], 
+    meaning: "طموح، انضباط، نجاح",
+    element: "ترابي",
+    planet: "زحل",
+    house: "البيت العاشر: العمل والسمعة",
+    message: "خطط لطموحاتك، كن منضبطاً، اعمل بجد لتحقيق النجاح، اهتم بسمعتك المهنية"
+  },
+  { 
+    name: "الدلو", 
+    pattern: [1, 2, 1, 2], 
+    meaning: "ابتكار، تحرر، تقدم",
+    element: "هوائي",
+    planet: "زحل",
+    house: "البيت الحادي عشر: الصداقات والأهداف",
+    message: "ابتكر حلولاً جديدة، تحرر من القيود، ابحث عن التقدم، تواصل مع أشخاص يشاركونك أهدافك"
+  },
+  { 
+    name: "الحوت", 
+    pattern: [2, 2, 1, 2], 
+    meaning: "حدس، إبداع، روحانية",
+    element: "مائي",
+    planet: "القمر",
+    house: "البيت الثاني عشر: الخفاء والروحانية",
+    message: "استعن بحدسك، ابحث عن العمق الروحي، انتبه للإشارات الخفية، تجنب الهروب من الواقع"
+  },
+  { 
+    name: "الشمس", 
+    pattern: [1, 1, 2, 2], 
+    meaning: "نور، حيوية، انتصار",
+    element: "ناري",
+    planet: "الشمس",
+    house: "البيت الأول (مكرر): القوة الذاتية",
+    message: "اظهر طاقتك الإيجابية، ابحث عن النور في كل موقف، احتفل بالانتصارات، كن مصدر إلهام للآخرين"
+  },
+  { 
+    name: "القمر", 
+    pattern: [2, 1, 2, 2], 
+    meaning: "حدس، تأثير، تغيير",
+    element: "مائي",
+    planet: "القمر",
+    house: "البيت الرابع (مكرر): المشاعر والبيت",
+    message: "استعن بحدسك، تأقلم مع التغييرات، اهتم بمشاعرك، ابحث عن الأمان الداخلي"
+  },
+  { 
+    name: "النجم", 
+    pattern: [1, 2, 2, 2], 
+    meaning: "إلهام، تألق، توجيه",
+    element: "هوائي",
+    planet: "الشمس",
+    house: "البيت الحادي عشر (مكرر): الأحلام والآمال",
+    message: "اتبع أحلامك، ابحث عن التألق في حياتك، اطلب التوجيه، كن مصدر إلهام للآخرين"
+  },
+  { 
+    name: "السيف", 
+    pattern: [2, 2, 2, 2], 
+    meaning: "حسم، قوة، تحدي",
+    element: "ناري",
+    planet: "المريخ",
+    house: "البيت السادس (مكرر): التحديات اليومية",
+    message: "كن حاسماً في قراراتك، استخدم قوتك بحكمة، واجه التحديات، تجنب العنف والعدوانية"
+  }
+];
+
+// تعريف المنازل الـ 12
+const HOUSES = [
+  { number: 1, name: "الذات", element: "ناري", meaning: "الشخصية، المظهر، البدايات" },
+  { number: 2, name: "الأموال", element: "ترابي", meaning: "الموارد، الثروة، القيم" },
+  { number: 3, name: "الاتصال", element: "هوائي", meaning: "التعلم، الأخبار، الشقيقة" },
+  { number: 4, name: "البيت", element: "مائي", meaning: "العائلة، الجذور، السكن" },
+  { number: 5, name: "الإبداع", element: "ناري", meaning: "المرح، الأطفال، الإبداع" },
+  { number: 6, name: "الصحة", element: "ترابي", meaning: "العمل، الروتين، الصحة" },
+  { number: 7, name: "الشراكة", element: "هوائي", meaning: "العلاقات، الزواج، العقود" },
+  { number: 8, name: "التحول", element: "مائي", meaning: "الموت، الميراث، التحولات" },
+  { number: 9, name: "السفر", element: "ناري", meaning: "السفر، الفلسفة، التعليم العالي" },
+  { number: 10, name: "السمعة", element: "ترابي", meaning: "العمل، المكانة، الطموح" },
+  { number: 11, name: "الأهداف", element: "هوائي", meaning: "الأصدقاء، الأهداف، الرغبات" },
+  { number: 12, name: "الخفي", element: "مائي", meaning: "الأسرار، الخوف، الروحانية" }
+];
+
+// تعريف المنازل القمرية الـ 28
+const MOON_MANSIONS = [
+  { name: "الشرطان", letter: "أ", angle: 0, meaning: "بداية المشاريع الجديدة" },
+  { name: "البطين", letter: "ب", angle: 12.85, meaning: "التوازن الروحي" },
+  { name: "الثريا", letter: "ج", angle: 25.71, meaning: "الاتصال الكوني" },
+  { name: "الدبران", letter: "د", angle: 38.57, meaning: "القوة الداخلية" },
+  { name: "الهقعة", letter: "ه", angle: 51.43, meaning: "الحماية الإلهية" },
+  { name: "الهنعة", letter: "و", angle: 64.28, meaning: "الرحمة السماوية" },
+  { name: "الذراع", letter: "ز", angle: 77.14, meaning: "القوة الجسدية" },
+  { name: "النثرة", letter: "ح", angle: 90.0, meaning: "البصيرة النافذة" },
+  { name: "الطرفة", letter: "ط", angle: 102.85, meaning: "التجديد الروحي" },
+  { name: "الجبهة", letter: "ي", angle: 115.71, meaning: "الشجاعة الأدبية" },
+  { name: "الزبرة", letter: "ك", angle: 128.57, meaning: "الحكمة العملية" },
+  { name: "الصرفة", letter: "ل", angle: 141.43, meaning: "التغيير الإيجابي" },
+  { name: "العواء", letter: "م", angle: 154.28, meaning: "القيادة الحكيمة" },
+  { name: "السماك", letter: "ن", angle: 167.14, meaning: "العدالة الكونية" },
+  { name: "الغفر", letter: "س", angle: 180.0, meaning: "المغفرة الإلهية" },
+  { name: "الزبانا", letter: "ع", angle: 192.85, meaning: "التوازن المادي" },
+  { name: "الإكليل", letter: "ف", angle: 205.71, meaning: "التاج الروحي" },
+  { name: "القلب", letter: "ص", angle: 218.57, meaning: "مركز الطاقة" },
+  { name: "الشولة", letter: "ق", angle: 231.43, meaning: "التحول الكبير" },
+  { name: "النعائم", letter: "ر", angle: 244.28, meaning: "البركات السماوية" },
+  { name: "البلدة", letter: "ش", angle: 257.14, meaning: "الاستقرار الأرضي" },
+  { name: "سعد الذابح", letter: "ت", angle: 270.0, meaning: "التضحية الإيجابية" },
+  { name: "سعد بلع", letter: "ث", angle: 282.85, meaning: "القبول الإلهي" },
+  { name: "سعد السعود", letter: "خ", angle: 295.71, meaning: "السعادة الدائمة" },
+  { name: "سعد الأخبية", letter: "ذ", angle: 308.57, meaning: "الأسرار الكونية" },
+  { name: "المقدم", letter: "ض", angle: 321.43, meaning: "البدايات الجديدة" },
+  { name: "المؤخر", letter: "ظ", angle: 334.28, meaning: "إنهاء المراحل" },
+  { name: "الرشاء", letter: "غ", angle: 347.14, meaning: "الرشد الإلهي" }
+];
+
+// تعريف التخت (البنش) مع إشاراته وسوره وذكره وتوجيهه
+const TAKHTS = [
+  {
+    id: 1,
+    name: "التخت الأول",
+    abbreviation: "ت1",
+    description: "يُرمز إلى البداية والبدء في الأشياء",
+    signs: ["الحركة الجديدة", "الابتسامة", "الاستعداد"],
+    surahs: ["الفاتحة", "البقرة"],
+    adhkar: ["اللهم اجعلني من الذين يبدأون بخير", "اللهم ارزقني البداية الصالحة"],
+    guidance: "ابدأ كل عمل بذكر الله وابدأ بخطوة صغيرة",
+    associatedHouse: 1
+  },
+  {
+    id: 2,
+    name: "التخت الثاني",
+    abbreviation: "ت2",
+    description: "يُرمز إلى الاستقرار والثبات",
+    signs: ["الهدوء", "الاستقرار", "الثبات"],
+    surahs: ["آل عمران", "النساء"],
+    adhkar: ["اللهم اجعلني على الثبات", "اللهم ثبتني على طريقك"],
+    guidance: "كن ثابتًا في أفعالك وثق بربك",
+    associatedHouse: 2
+  },
+  {
+    id: 3,
+    name: "التخت الثالث",
+    abbreviation: "ت3",
+    description: "يُرمز إلى التواصل والاتصال",
+    signs: ["الكلام الجميل", "الاتصال", "الصداقة"],
+    surahs: ["المائدة", "الأنعام"],
+    adhkar: ["اللهم زدني في علمك", "اللهم سددني في كلامي"],
+    guidance: "استخدم كلامك للخير وابني علاقات قوية",
+    associatedHouse: 3
+  },
+  {
+    id: 4,
+    name: "التخت الرابع",
+    abbreviation: "ت4",
+    description: "يُرمز إلى العاطفة والذكريات",
+    signs: ["الحب", "الحنين", "الاهتمام"],
+    surahs: ["الأنبياء", "الروم"],
+    adhkar: ["اللهم اجعل قلبي ممتلئًا بالحب", "اللهم اجعلني أذكرك دائمًا"],
+    guidance: "ركز على علاقاتك الأسرية وكن حريصًا على مشاعرك",
+    associatedHouse: 4
+  },
+  {
+    id: 5,
+    name: "التخت الخامس",
+    abbreviation: "ت5",
+    description: "يُرمز إلى القيادة والإبداع",
+    signs: ["القيادة", "الإبداع", "الثقة"],
+    surahs: ["البقرة", "الإسراء"],
+    adhkar: ["اللهم اجعلني قائدًا صالحًا", "اللهم ارزقني الإبداع في عملك"],
+    guidance: "استخدم قوتك الإبداعية وكن قائدًا في مشاريعك",
+    associatedHouse: 5
+  },
+  {
+    id: 6,
+    name: "التخت السادس",
+    abbreviation: "ت6",
+    description: "يُرمز إلى الصحة والعمل",
+    signs: ["الصحة", "التنظيم", "الجدية"],
+    surahs: ["الأنعام", "الحجر"],
+    adhkar: ["اللهم اجعلني صحيًا", "اللهم اجعلني مُنظمًا في عملي"],
+    guidance: "ركز على صحتك ونظم وقتك بعناية",
+    associatedHouse: 6
+  },
+  {
+    id: 7,
+    name: "التخت السابع",
+    abbreviation: "ت7",
+    description: "يُرمز إلى العلاقات والشراكات",
+    signs: ["العلاقة", "الشراكة", "الثقة"],
+    surahs: ["البقرة", "الحجر"],
+    adhkar: ["اللهم اجعلني أثق بشركائي", "اللهم اجعلني أبني شراكات ناجحة"],
+    guidance: "ابني علاقات قوية وكن موثوقًا بها",
+    associatedHouse: 7
+  },
+  {
+    id: 8,
+    name: "التخت الثامن",
+    abbreviation: "ت8",
+    description: "يُرمز إلى التحول والموارد المشتركة",
+    signs: ["التحول", "الاستثمار", "التجدد"],
+    surahs: ["الأنفال", "البقرة"],
+    adhkar: ["اللهم اجعلني أستثمر في مواردي", "اللهم اجعلني قادرًا على التحول"],
+    guidance: "استعد للتغييرات وكن مستعدًا للاستثمار",
+    associatedHouse: 8
+  },
+  {
+    id: 9,
+    name: "التخت التاسع",
+    abbreviation: "ت9",
+    description: "يُرمز إلى السفر والفلسفة",
+    signs: ["السفر", "التفكير", "التعلم"],
+    surahs: ["التوبة", "النحل"],
+    adhkar: ["اللهم اجعلني أتعلم دائمًا", "اللهم اجعلني أستكشف العالم"],
+    guidance: "استكشف العالم وابحث عن الحكمة",
+    associatedHouse: 9
+  },
+  {
+    id: 10,
+    name: "التخت العاشر",
+    abbreviation: "ت10",
+    description: "يُرمز إلى السمعة والعمل",
+    signs: ["السمعة", "الجدارة", "الاحترام"],
+    surahs: ["البقرة", "النحل"],
+    adhkar: ["اللهم اجعلني مُحترمًا", "اللهم اجعلني أبني سمعة طيبة"],
+    guidance: "خطط لسمعتك المهنية وكن مُحترمًا",
+    associatedHouse: 10
+  },
+  {
+    id: 11,
+    name: "التخت الحادي عشر",
+    abbreviation: "ت11",
+    description: "يُرمز إلى الأصدقاء والأهداف",
+    signs: ["الأصدقاء", "الهدف", "الاستراتيجية"],
+    surahs: ["الأنبياء", "البقرة"],
+    adhkar: ["اللهم اجعلني أجد أصدقاء صالحين", "اللهم اجعلني أحقق أهدافي"],
+    guidance: "ابنِ صداقات قوية وحدد أهدافًا واضحة",
+    associatedHouse: 11
+  },
+  {
+    id: 12,
+    name: "التخت الثاني عشر",
+    abbreviation: "ت12",
+    description: "يُرمز إلى الخفاء والروحانية",
+    signs: ["الروحي", "السر", "التفكر"],
+    surahs: ["الأنبياء", "الروم"],
+    adhkar: ["اللهم اجعلني أتفكر في خلقي", "اللهم اجعلني أبحث عن الروحانية"],
+    guidance: "استكشف عالمك الروحي وابحث عن الأسرار",
+    associatedHouse: 12
+  }
+];
+
+let DATA = {
+  figs: JSON.parse(JSON.stringify(DEFAULT_FIGS)),
+  interpZ: '',
+  interpI: '',
+  parityMode: 'odd1',
+  pawnTheme: 'grain',
+  transcript: '',
+  squareMessages: {}
+};
+
+let ttsEnabled = false; // حالة تشغيل/إيقاف القراءة الصوتية
+
+/* ---------- أدوات صغيرة ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function saveLocal() {
+  localStorage.setItem('raml_chess_v1', JSON.stringify(DATA));
+}
+
+function loadLocal() {
+  const j = localStorage.getItem('raml_chess_v1');
+  if (j) DATA = JSON.parse(j);
+}
+
+// حساب القيمة العددية (أبجد)
+function calculateAbjad(word) {
+  const abjadMap = {
+    'ا': 1, 'أ': 1, 'إ': 1, 'آ': 1, 'ء': 1,
+    'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8, 'ط': 9,
+    'ي': 10, 'ى': 10, 'ك': 20, 'ل': 30, 'م': 40, 'ن': 50,
+    'س': 60, 'ع': 70, 'ف': 80, 'ص': 90, 'ق': 100, 'ر': 200,
+    'ش': 300, 'ت': 400, 'ث': 500, 'خ': 600, 'ذ': 700, 'ض': 800,
+    'ظ': 900, 'غ': 1000
+  };
+  
+  let sum = 0;
+  for (let i = 0; i < word.length; i++) {
+    sum += abjadMap[word[i]] || 0;
+  }
+  return sum;
+}
+
+// تقليل القيمة إلى رقم واحد
+function reduceToSingleDigit(num) {
+  while (num > 9) {
+    num = num.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+  }
+  return num;
+}
+
+// توليد كلمة سرية عشوائية
+function generateSecretWord(rank, file) {
+  const names = ["الرحمن", "الرحيم", "الملك", "القدوس", "السلام", "المؤمن", "المهيمن", "العزيز"];
+  const actions = ["يبدأ", "يحقق", "يحفظ", "يرزق", "يهدي", "ينصر", "يوفق", "يحفظ"];
+  const objects = ["الخير", "النجاح", "البركة", "الرزق", "الهداية", "النصر", "التوفيق", "الحفظ"];
+  
+  const nameIndex = (rank + file) % names.length;
+  const actionIndex = (rank * file) % actions.length;
+  const objectIndex = (rank + file * 2) % objects.length;
+  
+  return `${names[nameIndex]} ${actions[actionIndex]} ${objects[objectIndex]}`;
+}
+
+// تحليل الكلمة باستخدام شجرة الرحمن الرحيم
+function analyzeWordWithRahmanTree(word) {
+  const abjadValue = calculateAbjad(word);
+  const reducedValue = reduceToSingleDigit(abjadValue);
+  
+  // تحديد الشكل الرملي المرتبط
+  const associatedForm = RUMAL_FORMS.find(form => {
+    const formValue = calculateAbjad(form.name);
+    return formValue % 9 === reducedValue;
+  });
+  
+  // تحديد الاسم الحسن المرتبط
+  const associatedName = DIVINE_NAMES.find(name => {
+    return name.abjad % 9 === reducedValue;
+  });
+  
+  // تحديد السورة المرتبطة
+  const associatedSurah = QURAN_SURAH.find(surah => {
+    return surah.number % 9 === reducedValue;
+  });
+  
+  // توليد الرسالة السرية
+  const secretMessage = generateSecretMessage(word, associatedForm, associatedName, associatedSurah);
+  
+  return {
+    abjad: abjadValue,
+    reducedValue: reducedValue,
+    associatedForm: associatedForm,
+    associatedName: associatedName,
+    associatedSurah: associatedSurah,
+    secretMessage: secretMessage
+  };
+}
+
+// توليد الرسالة السرية
+function generateSecretMessage(word, form, name, surah) {
+  if (!form || !name || !surah) return "الكلمة تحمل سراً يحتاج إلى تأمل أعمق";
+  
+  const messages = [
+    `يا ${word}، اعلم أن ${name.name} قد جعل فيك سر ${form.name}، فاستعن بسورة ${surah.name} لتصل إلى الحكمة المطلوبة`,
+    `في كلمة "${word}" يكمن سر ${form.meaning}، و ${name.name} يرشدك إلى أن ${form.message}، فتلوّ ${surah.name} لتتقوى`,
+    `إذا قرأت سورة ${surah.name} مع التأمل في معنى ${form.name}، ستجد أن ${name.name} قد جعل في قلبك سر ${word} الذي يحمل لك رسالة: ${form.message}`,
+    `السر: ${word} تشير إلى أن ${name.name} قد جعل فيك طاقة ${form.name}، فاستعن بسورة ${surah.name} لتحقيق ${form.message}`,
+    `في قلب كلمة "${word}" يكمن سر ${form.name}، و ${name.name} يرشدك إلى أن ${form.message}، فتلوّ سورة ${surah.name} لتتقوى`
+  ];
+  
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+// ملء البلاطات الفارغة بشجرة الرحمن
+function fillEmptySquaresWithRahmanTree() {
+  // البحث عن البلاطات الفارغة (الصفوف 3-6)
+  const emptySquares = [];
+  for (let r = 3; r <= 6; r++) {
+    for (let f = 0; f < 8; f++) {
+      emptySquares.push({rank: r, file: f});
+    }
+  }
+  
+  // ملء كل بلاطة فارغة برسالة سرية
+  emptySquares.forEach(square => {
+    const {rank, file} = square;
+    const sqId = `${FILES[file]}${rank}`;
+    const word = generateSecretWord(rank, file); // توليد كلمة سرية
+    const analysis = analyzeWordWithRahmanTree(word);
+    
+    // حفظ التحليل في البيانات
+    const squareData = {
+      word: word,
+      analysis: analysis,
+      timestamp: new Date().toISOString()
+    };
+    
+    // تخزين البيانات
+    if (!DATA.squareMessages) DATA.squareMessages = {};
+    DATA.squareMessages[sqId] = squareData;
+  });
+  
+  logInfo(`تم ملء ${emptySquares.length} بلاطة فارغة باستخدام شجرة الرحمن`);
+  saveLocal();
+  renderBoard();
+}
+
+// تحليل جميع الكلمات في الرقعة
+function analyzeAllWords() {
+  let analysisResult = "";
+  
+  for (let r = 3; r <= 6; r++) {
+    for (let f = 0; f < 8; f++) {
+      const sqId = `${FILES[file]}${rank}`;
+      if (DATA.squareMessages && DATA.squareMessages[sqId]) {
+        const analysis = DATA.squareMessages[sqId].analysis;
+        analysisResult += `<div style="margin-bottom:10px;padding:8px;background:#0a1c2a;border-radius:6px">
+          <div><b>${sqId}: ${DATA.squareMessages[sqId].word}</b></div>
+          <div class="small">القيمة العددية: ${analysis.abjad}</div>
+          <div class="small">الرسالة السرية: <i>${analysis.secretMessage}</i></div>
+        </div>`;
+      }
+    }
+  }
+  
+  if (!analysisResult) {
+    analysisResult = "<div class='small'>لم يتم تحليل أي كلمات بعد. اضغط على 'ملء الفراغات بشجرة الرحمن' أولاً.</div>";
+  }
+  
+  // عرض النتائج في نافذة منبثقة
+  const modal = $('#modal'); 
+  const body = $('#modalBody'); 
+  $('#modalTitle').textContent = "تحليل جميع الكلمات";
+  body.innerHTML = analysisResult;
+  $('#modalBack').style.display = 'flex';
+}
+
+/* ---------- تبويبات ---------- */
+$$('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    $$('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const pane = t.dataset.tab;
+    $$('.tabpane').forEach(p => p.style.display = (p.dataset.pane === pane ? 'block' : 'none'));
+  });
+});
+
+/* ---------- parity (0=فرد,1=زوج) ---------- */
+$('#parityMode').value = DATA.parityMode;
+$('#parityMode').addEventListener('change', () => {
+  DATA.parityMode = $('#parityMode').value;
+  saveLocal();
+  renderPad();
+});
+
+function parityDisplay(bit) {
+  // mode odd0: 0 -> فرد (•) ; 1 -> زوج (••)
+  const mode = $('#parityMode').value;
+  if (mode === 'odd0') return bit === '0' ? '•' : '••';
+  return bit === '1' ? '•' : '••';
+}
+
+function toCanonical(bits) {
+  // canon: 1 = فرد, 0 = زوج
+  const mode = $('#parityMode').value;
+  if (mode === 'odd0') return bits.split('').map(b => b === '0' ? '1' : '0').join('');
+  return bits;
+}
+
+function badgeFromCanonical(bits) {
+  return bits.split('').map(b => b === '1' ? '•' : '••').join(' ');
+}
+
+function renderRumalPattern(bits) {
+  // تحويل البتات إلى نمط الرمل (نقط)
+  const pattern = bits.split('').map(b => b === '1' ? 1 : 2);
+  return pattern.map(dots => {
+    return `<div class="rumal-pattern">${Array(dots).fill(0).map(() => 
+      `<span class="rumal-dot ${dots === 2 ? 'double' : ''}"></span>`).join('')}</div>`;
+  }).join('');
+}
+
+/* ---------- إدخال الأمهات ---------- */
+let moms = []; // stored canonical (1=فرد)
+function renderMoms() {
+  const wrap = $('#momsRow');
+  wrap.innerHTML = '';
+  moms.forEach((m, i) => {
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.style.margin = '4px';
+    el.style.padding = '6px';
+    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(m)}</div><div class="small">أم ${i + 1} — <code>${m}</code></div>`;
+    el.onclick = () => {
+      if (confirm('حذف أم؟')) {
+        moms.splice(i, 1);
+        renderMoms();
+      }
+    };
+    wrap.appendChild(el);
+  });
+}
+
+$('#addFromInput').addEventListener('click', () => {
+  const v = ($('#quickBits').value || '').trim();
+  if (!/^[01]{4}$/.test(v)) {
+    alert('أدخل 4 خانات 0/1');
+    return;
+  }
+  moms.push(toCanonical(v));
+  renderMoms();
+});
+
+$('#randomMoms').addEventListener('click', () => {
+  while (moms.length < 4) moms.push(toCanonical(Array.from({ length: 4 }, () => Math.random() > 0.5 ? '1' : '0').join('')));
+  renderMoms();
+});
+
+$('#resetMoms').addEventListener('click', () => {
+  if (confirm('تفريغ الأمهات؟')) {
+    moms = [];
+    renderMoms();
+    $('#resRow').innerHTML = '';
+    SIXTEEN = [];
+    renderBoard();
+  }
+});
+
+/* ---------- بناء الـ16 ---------- */
+function xor(a, b) {
+  return (Number(a) ^ Number(b)).toString();
+}
+
+function col(arr, i) {
+  return arr.map(x => x[i]).join('');
+}
+
+function build16(momsArr) {
+  if (momsArr.length !== 4) throw new Error('يلزم أربعة أمهات.');
+  const M = momsArr; // strings canonical (1=فرد)
+  const D = [0, 1, 2, 3].map(i => col(M, i)); // البنات
+  const N1 = M[0].split('').map((_, r) => xor(M[0][r], M[1][r])).join('');
+  const N2 = M[2].split('').map((_, r) => xor(M[2][r], M[3][r])).join('');
+  const N3 = D[0].split('').map((_, r) => xor(D[0][r], D[1][r])).join('');
+  const N4 = D[2].split('').map((_, r) => xor(D[2][r], D[3][r])).join('');
+  const W1 = N1, W2 = N2;
+  const J = W1.split('').map((_, r) => xor(W1[r], W2[r])).join('');
+  const all = [...M, ...D, N1, N2, N3, N4, W1, W2, J].slice(0, 16);
+  return all;
+}
+
+let SIXTEEN = [];
+
+$('#build16').addEventListener('click', () => {
+  try {
+    SIXTEEN = build16(moms);
+    renderSixteen();
+    renderBoard();
+    logInfo('تم توليد الـ16 شكل.');
+  } catch (e) {
+    alert(e.message);
+  }
+});
+
+function renderSixteen() {
+  const wrap = $('#resRow');
+  wrap.innerHTML = '';
+  SIXTEEN.forEach((b, i) => {
+    const f = figByBits(b) || ['????', 'غير معروف', '?', '?', '?', '?', '?', '?'];
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.style.margin = '4px';
+    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(b)}</div><div class="small">#${i + 1} — <b>${f[1]}</b> <code>${b}</code></div>`;
+    wrap.appendChild(el);
+  });
+}
+
+/* ---------- القاموس والبيوت ---------- */
+function figByBits(bits) {
+  return DATA.figs.find(f => f[0] === bits);
+}
+
+function findRumalFormByBits(bits) {
+  // محاولة العثور على شكل الرمل المطابق
+  const pattern = bits.split('').map(b => b === '1' ? 1 : 2);
+  return RUMAL_FORMS.find(form => {
+    for (let i = 0; i < 4; i++) {
+      if (form.pattern[i] !== pattern[i]) return false;
+    }
+    return true;
+  });
+}
+
+function renderFigTable() {
+  const wrap = $('#figTableWrap');
+  wrap.innerHTML = '';
+  const tbl = document.createElement('table');
+  tbl.className = 'table';
+  const hdr = document.createElement('tr');
+  hdr.innerHTML = '<th>#</th><th>bits</th><th>الاسم العربي</th><th>لاتيني</th><th>العنصر</th><th>الكوكب</th><th>البرج</th><th>طبيعة</th><th>ملاحظة</th>';
+  tbl.appendChild(hdr);
+  DATA.figs.forEach((f, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i + 1}</td>` + f.map((c, j) => `<td contenteditable data-i="${i}" data-j="${j}">${c}</td>`).join('');
+    tbl.appendChild(tr);
+  });
+  wrap.appendChild(tbl);
+  tbl.querySelectorAll('[contenteditable]').forEach(td => {
+    td.addEventListener('blur', () => {
+      const i = +td.dataset.i, j = +td.dataset.j;
+      DATA.figs[i][j] = td.textContent.trim();
+      saveLocal();
+      renderSixteen();
+      renderBoard();
+    });
+  });
+  saveLocal();
+}
+
+function renderHouses() {
+  // بسيط: المنزل 1..12 = أول 12 من SIXTEEN إن وجدت
+  const wrap = $('#houseTableWrap');
+  wrap.innerHTML = '';
+  const tbl = document.createElement('table');
+  tbl.className = 'table';
+  const hdr = document.createElement('tr');
+  hdr.innerHTML = '<th>بيت</th><th>شكل</th><th>الاسم</th><th>العنصر</th><th>الرسالة</th>';
+  tbl.appendChild(hdr);
+  for (let i = 0; i < 12; i++) {
+    const bits = SIXTEEN[i] || '';
+    const f = bits ? (figByBits(bits) || ['', '', '', '', '', '', '', '']) : ['', 'فارغ', '---', '', '', '', '', ''];
+    const rumalForm = bits ? findRumalFormByBits(bits) : null;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i + 1}</td><td>${bits ? badgeFromCanonical(bits) : '—'}</td><td>${f[1] || '—'}</td><td>${f[3] || '—'}</td><td contenteditable data-house="${i}">${rumalForm ? rumalForm.message : '—'}</td>`;
+    tbl.appendChild(tr);
+  }
+  wrap.appendChild(tbl);
+  tbl.querySelectorAll('[contenteditable]').forEach(td => {
+    td.addEventListener('blur', () => saveLocal());
+  });
+}
+
+// عرض جدول الأسماء الحسنى
+function renderDivineNamesTable() {
+  const wrap = $('#divineNamesTable');
+  wrap.innerHTML = `
+    <table class="table">
+      <tr>
+        <th>الرقم</th>
+        <th>الاسم</th>
+        <th>القيمة العددية</th>
+        <th>الدلالة</th>
+        <th>الشكل المرتبط</th>
+        <th>البيت</th>
+      </tr>
+      ${DIVINE_NAMES.map((name, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${name.name}</td>
+          <td>${name.abjad}</td>
+          <td>${name.meaning}</td>
+          <td>${name.associatedForms.join(", ")}</td>
+          <td>البيت ${name.associatedHouse}</td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+}
+
+// عرض جدول التخت
+function renderTakhtTable() {
+  const wrap = $('#takhtTableWrap');
+  wrap.innerHTML = `
+    <table class="table">
+      <tr>
+        <th>الاختصار</th>
+        <th>الاسم</th>
+        <th>الوصف</th>
+        <th>الإشارات</th>
+        <th>السور</th>
+        <th>الأذكار</th>
+        <th>التوجيه</th>
+      </tr>
+      ${TAKHTS.map(takht => `
+        <tr>
+          <td>${takht.abbreviation}</td>
+          <td>${takht.name}</td>
+          <td>${takht.description}</td>
+          <td>${takht.signs.join(", ")}</td>
+          <td>${takht.surahs.join(", ")}</td>
+          <td>${takht.adhkar.join(", ")}</td>
+          <td>${takht.guidance}</td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+}
+
+/* ---------- الرقعة ---------- */
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const whiteBack = ['رخ', 'حصان', 'فيل', 'وزير', 'ملك', 'فيل', 'حصان', 'رخ'];
+const blackBack = [...whiteBack];
+
+function pawnLabel(fileIndex, isWhite) {
+  if ($('#pawnTheme').value === 'grain') {
+    const val = 1 << fileIndex;
+    return `🌾 ${val}`;
+  }
+  const bits = ('00000000' + (1 << fileIndex).toString(2)).slice(-8);
+  return `⚛️ ${bits}`;
+}
+
+function initialPieceAt(rank, file) {
+  if (rank === 2) return { side: 'أبيض', piece: 'جندي', label: pawnLabel(file, true) };
+  if (rank === 7) return { side: 'أسود', piece: 'جندي', label: pawnLabel(file, false) };
+  if (rank === 1) return { side: 'أبيض', piece: whiteBack[file] };
+  if (rank === 8) return { side: 'أسود', piece: blackBack[file] };
+  return null;
+}
+
+function logInfo(txt) {
+  const log = $('#infoLog');
+  const d = document.createElement('div');
+  d.textContent = `${(new Date()).toLocaleTimeString()} — ${txt}`;
+  log.prepend(d);
+}
+
+function speak(txt) {
+  if (!ttsEnabled) return;
+  try {
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'ar-SA';
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* لوحة الرمز */
+function renderBoard() {
+  const board = $('#board');
+  board.innerHTML = '';
+  for (let r = 8; r >= 1; r--) {
+    for (let f = 0; f < 8; f++) {
+      const sq = document.createElement('div');
+      sq.className = 'sq ' + (((r + f) % 2 === 0) ? 'light' : 'dark');
+      sq.dataset.rank = r;
+      sq.dataset.file = f;
+      const piece = initialPieceAt(r, f);
+      const sqId = `${FILES[f]}${r}`;
+      
+      // تحديد ما إذا كانت هذه البلاطة تحتوي على رسالة من شجرة الرحمن
+      const hasRumalMessage = DATA.squareMessages && DATA.squareMessages[sqId];
+      
+      // إضافة فئة خاصة إذا كانت تحتوي على رسالة
+      if (hasRumalMessage) {
+        sq.classList.add('rumal-message');
+      }
+      
+      if ((r === 1 || r === 8) && piece) { // حاشية — نعرض شكل إذا وُجد في SIXTEEN
+        const idx = (r === 1 ? 0 : 8) + f;
+        const bits = SIXTEEN[idx];
+        if (bits) {
+          const meta = figByBits(bits) || ['','','','','','','',''];
+          const rumalForm = findRumalFormByBits(bits);
+          sq.innerHTML = `<div class="piece" data-bits="${bits}" data-rank="${r}" data-file="${f}">
+            <div style="font-weight:800">${badgeFromCanonical(bits)}</div>
+            <div class="small">${meta[1] || '—'}</div>
+            ${rumalForm ? `<div class="small" style="color:#a78bfa">${rumalForm.name}</div>` : ''}
+          </div>`;
+        } else {
+          sq.innerHTML = `<div class="piece" data-rank="${r}" data-file="${f}"><div class="small">فارغ</div></div>`;
+        }
+      } else if (piece && piece.piece === 'جندي') {
+        sq.innerHTML = `<div class="piece" data-pawn="1" data-side="${piece.side}" data-rank="${r}" data-file="${f}">
+          <div>${piece.label}</div>
+          <div class="small">${piece.side} — جندي</div>
+        </div>`;
+      } else {
+        // إذا كانت البلاطة تحتوي على رسالة، عرضها
+        if (hasRumalMessage) {
+          const msg = DATA.squareMessages[sqId];
+          sq.innerHTML = `
+            <div class="piece" data-rumal-message="${sqId}" style="background:linear-gradient(135deg,#0d2538,#0a1c2a);">
+              <div style="font-weight:800;font-size:14px;color:#a78bfa">شجرة الرحمن</div>
+              <div class="small" style="color:#e6eef6;white-space:normal;text-align:center">${msg.word}</div>
+            </div>
+          `;
+        } else {
+          sq.innerHTML = '';
+        }
+      }
+      
+      // تفاعل: نقرة واحدة + نقرة مزدوجة
+      let clickTimer = null;
+      sq.addEventListener('click', (ev) => {
+        if (clickTimer == null) {
+          clickTimer = setTimeout(() => {
+            clickTimer = null;
+            onSquareClick(r, f);
+          }, 250);
+        }
+      });
+      sq.addEventListener('dblclick', (ev) => {
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
+        onSquareDoubleClick(r, f);
+      });
+      board.appendChild(sq);
+    }
+  }
+}
+
+/* النقر: عرض موجز */
+function onSquareClick(rank, file) {
+  const sqId = `${FILES[file]}${rank}`;
+  const piece = initialPieceAt(rank, file);
+  if (rank === 1 || rank === 8) {
+    const idx = (rank === 1 ? 0 : 8) + file;
+    const bits = SIXTEEN[idx];
+    if (!bits) {
+      $('#squareInfo').innerHTML = `الخانة ${sqId} — لا يوجد شكل مثبت هنا.`;
+      return;
+    }
+    const meta = figByBits(bits) || ['','','','','','','',''];
+    const rumalForm = findRumalFormByBits(bits);
+    $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — حاشية</div><div><b>الشكل:</b> ${badgeFromCanonical(bits)} <code>${bits}</code></div><div><b>الاسم:</b> ${meta[1] || '—'}</div><div class="small"><b>عنصر/كوكب:</b> ${meta[3] || '—'} / ${meta[4] || '—'}</div>`;
+    if (rumalForm) {
+      $('#squareInfo').innerHTML += `<div class="small"><b>شكل الرمل:</b> ${rumalForm.name} (${rumalForm.element})</div>`;
+    }
+    
+    // إضافة معلومات التخت
+    const takht = TAKHTS.find(t => t.associatedHouse === (idx % 12) + 1);
+    if (takht) {
+      $('#squareInfo').innerHTML += `<div class="small"><b>التخت:</b> ${takht.abbreviation} - ${takht.name}</div>`;
+      $('#squareInfo').innerHTML += `<div class="small"><b>الإشارات:</b> ${takht.signs.join(', ')}</div>`;
+      $('#squareInfo').innerHTML += `<div class="small"><b>السور:</b> ${takht.surahs.join(', ')}</div>`;
+      $('#squareInfo').innerHTML += `<div class="small"><b>الأذكار:</b> ${takht.adhkar.join(', ')}</div>`;
+      $('#squareInfo').innerHTML += `<div class="small"><b>التوجيه:</b> ${takht.guidance}</div>`;
+    }
+    
+    logInfo(`حاشية ${sqId}: ${meta[1] || 'شكل غير معروف'}`);
+    speak(`في الخانة ${sqId} شكل ${meta[1] || 'مجهول'}.`);
+  } else if (piece && piece.piece === 'جندي') {
+    $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — جندي (${piece.side})</div><div>${piece.label}</div>`;
+    logInfo(`جندي ${sqId}: ${piece.label}`);
+    speak(`الجندي في ${sqId}: ${piece.label}`);
+  } else {
+    // إذا كانت البلاطة تحتوي على رسالة من شجرة الرحمن
+    if (DATA.squareMessages && DATA.squareMessages[sqId]) {
+      const msg = DATA.squareMessages[sqId];
+      $('#squareInfo').innerHTML = `
+        <div><b>الخانة:</b> ${sqId} — رسالة شجرة الرحمن</div>
+        <div><b>الكلمة:</b> ${msg.word}</div>
+        <div class="small"><b>القيمة العددية:</b> ${msg.analysis.abjad}</div>
+        <div class="small"><b>الرسالة السرية:</b></div>
+        <div class="small" style="color:#a78bfa;white-space:normal">${msg.analysis.secretMessage}</div>
+      `;
+      
+      // إضافة معلومات التخت
+      const takht = TAKHTS.find(t => t.associatedHouse === (rank % 12) + 1);
+      if (takht) {
+        $('#squareInfo').innerHTML += `<div class="small"><b>التخت:</b> ${takht.abbreviation} - ${takht.name}</div>`;
+        $('#squareInfo').innerHTML += `<div class="small"><b>الإشارات:</b> ${takht.signs.join(', ')}</div>`;
+        $('#squareInfo').innerHTML += `<div class="small"><b>السور:</b> ${takht.surahs.join(', ')}</div>`;
+        $('#squareInfo').innerHTML += `<div class="small"><b>الأذكار:</b> ${takht.adhkar.join(', ')}</div>`;
+        $('#squareInfo').innerHTML += `<div class="small"><b>التوجيه:</b> ${takht.guidance}</div>`;
+      }
+    } else {
+      $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — ساحة التشجير (فارغة)</div><div class="small">استخدم زر "ملء الفراغات بشجرة الرحمن" لملء هذه الفراغات برسائل سرية.</div>`;
+      logInfo(`الساحة ${sqId} — فارغة.`);
+    }
+  }
+}
+
+/* النقر المزدوج: فتح modal مُفصل */
+function onSquareDoubleClick(rank, file) {
+  const sqId = `${FILES[file]}${rank}`;
+  const piece = initialPieceAt(rank, file);
+  const modal = $('#modal');
+  const body = $('#modalBody');
+  $('#modalTitle').textContent = `شرح مفصّل — ${sqId}`;
+  body.innerHTML = '';
+
+  if (rank === 1 || rank === 8) {
+    const idx = (rank === 1 ? 0 : 8) + file;
+    const bits = SIXTEEN[idx];
+    if (!bits) {
+      body.innerHTML = `<div class="small">لا يوجد شكل مثبت هنا. أدخل 4 خانات في الحقل أعلاه ثم اضغط هنا لتثبيت.</div>`;
+      $('#modalBack').style.display = 'flex';
+      return;
+    }
+    const meta = figByBits(bits) || ['','','','','','','',''];
+    const rumalForm = findRumalFormByBits(bits);
+    const mansionIndex = idx % 28;
+    const mansion = MOON_MANSIONS[mansionIndex];
+    // عرض مُفصّل:
+    body.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="font-weight:900;font-size:20px">${badgeFromCanonical(bits)}</div>
+        <div>
+          <div><b>الاسم:</b> ${meta[1] || '—'} (${meta[2] || '—'})</div>
+          <div><b>bits:</b> <code>${bits}</code></div>
+          <div><b>العنصر / الكوكب:</b> ${meta[3] || '—'} / ${meta[4] || '—'}</div>
+          <div><b>الطبيعة:</b> ${meta[6] || '—'}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        ${renderRumalPattern(bits)}
+      </div>
+      ${rumalForm ? `
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:8px 0">
+      <div style="font-weight:700;color:#a78bfa">${rumalForm.name} — شكل الرمل</div>
+      <div class="small"><b>الدلالة:</b> ${rumalForm.meaning}</div>
+      <div class="small"><b>العنصر:</b> ${rumalForm.element}</div>
+      <div class="small"><b>البيت:</b> ${rumalForm.house}</div>
+      <div class="small"><b>الرسالة:</b> ${rumalForm.message}</div>
+      ` : ''}
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:8px 0">
+      <div class="small"><b>المنزلة القمرية:</b> ${mansion.name} (${mansion.letter})</div>
+      <div class="small"><b>الدلالة:</b> ${mansion.meaning}</div>
+      <div style="margin-top:10px" class="small"><b>تفسير عام (مجمّع من مصادر الرمل):</b><br>${meta[7] || 'لا تفسير مبدئي.'}</div>
+      <div style="margin-top:10px" class="small"><b>رؤى (زناتي / إدريس) — مُعدّلة:</b><br>يمكنك تحرير نصوص الرؤى الخاصة بك في نافذة الجداول لارتباط أفكارك بالبيت والشكل.</div>
+      <div style="margin-top:10px" class="small"><b>ملاحظات من سلسلة 'طاووس' (ملخّص):</b><br>الأداة تضع هنا ملخصًا عامًا عن ربط الشكل بالبيت والعناصر — ويمكنك لصق اقتباساتك الحرفية في حقل 'Transcript' في تبويب 'حول'.</div>
+      <div style="margin-top:10px">
+        <button id="ttsModal" class="btn">قراءة الشرح</button>
+        <button id="linkMove" class="btn">ربط بنقلة من آخر تحليل PGN</button>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:8px 0">
+      <div class="small"><b>نصوص ومراجع:</b><div id="modalRefs">${(DATA.transcript || '') ? DATA.transcript : '<i>لم تُضمّن اقتباسات حرفية بعد.</i>'}</div></div>
+    `;
+    $('#modalBack').style.display = 'flex';
+    $('#ttsModal').addEventListener('click', () => speak(`شرح الشكل ${meta[1] || 'غير معروف'}. ${rumalForm ? rumalForm.message : ''}`));
+    $('#linkMove').addEventListener('click', () => {
+      if (window._lastPGNMatch) {
+        alert('مربوط بنقلة: ' + window._lastPGNMatch.san + ' → ' + window._lastPGNMatch.bits);
+      } else {
+        alert('لا توجد نقلة محللة حديثًا لربطها.');
+      }
+    });
+  } else if (piece && piece.piece === 'جندي') {
+    body.innerHTML = `<div class="small"><b>جندي ${piece.side} في ${sqId}</b><br>قيمة/رمز: ${piece.label}<br>يمكن ربط هذا الجندي بمخرجات تشجير ليعطي رسالة عند التحليل.</div>`;
+    $('#modalBack').style.display = 'flex';
+  } else {
+    // إذا كانت البلاطة تحتوي على رسالة من شجرة الرحمن
+    if (DATA.squareMessages && DATA.squareMessages[sqId]) {
+      const msg = DATA.squareMessages[sqId];
+      body.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:#0a1c2a;padding:10px;border-radius:8px">
+            <div style="font-weight:700;color:#a78bfa;margin-bottom:5px">الكلمة السرية</div>
+            <div style="font-size:18px;font-weight:800;text-align:center">${msg.word}</div>
+            <div class="small" style="text-align:center;margin-top:5px">القيمة العددية: ${msg.analysis.abjad}</div>
+          </div>
+          
+          ${msg.analysis.associatedName ? `
+          <div style="background:#0a1c2a;padding:10px;border-radius:8px">
+            <div style="font-weight:700;color:#a78bfa;margin-bottom:5px">الاسم الحسن المرتبط</div>
+            <div style="font-size:16px;font-weight:700;text-align:center">${msg.analysis.associatedName.name}</div>
+            <div class="small" style="text-align:center">${msg.analysis.associatedName.meaning}</div>
+            <div class="small" style="text-align:center;margin-top:5px">القيمة العددية: ${msg.analysis.associatedName.abjad}</div>
+          </div>
+          ` : ''}
+          
+          ${msg.analysis.associatedForm ? `
+          <div style="background:#0a1c2a;padding:10px;border-radius:8px">
+            <div style="font-weight:700;color:#a78bfa;margin-bottom:5px">شكل الرمل المرتبط</div>
+            <div style="font-size:16px;font-weight:700;text-align:center">${msg.analysis.associatedForm.name}</div>
+            <div class="small" style="text-align:center">${msg.analysis.associatedForm.meaning}</div>
+            <div class="small" style="text-align:center;margin-top:5px">البيت: ${msg.analysis.associatedForm.house}</div>
+          </div>
+          ` : ''}
+          
+          ${msg.analysis.associatedSurah ? `
+          <div style="background:#0a1c2a;padding:10px;border-radius:8px">
+            <div style="font-weight:700;color:#a78bfa;margin-bottom:5px">السورة المرتبطة</div>
+            <div style="font-size:16px;font-weight:700;text-align:center">سورة ${msg.analysis.associatedSurah.name}</div>
+            <div class="small" style="text-align:center">الرقم: ${msg.analysis.associatedSurah.number} - الآيات: ${msg.analysis.associatedSurah.verses}</div>
+            <div class="small" style="text-align:center;margin-top:5px">الدلالة الرملية: ${msg.analysis.associatedSurah.geomanticSignificance}</div>
+          </div>
+          ` : ''}
+          
+          <div style="background:#0d2538;padding:15px;border-radius:10px;margin-top:10px">
+            <div style="font-weight:700;color:#a78bfa;margin-bottom:8px">الرسالة السرية</div>
+            <div style="font-style:italic;line-height:1.6;color:#e6eef6">${msg.analysis.secretMessage}</div>
+          </div>
+          
+          <div style="margin-top:15px">
+            <button id="ttsMessage" class="btn" style="width:100%">قراءة الرسالة السرية</button>
+          </div>
+        </div>
+      `;
+    } else {
+      body.innerHTML = `<div class="small"><b>ساحة التشجير — ${sqId}</b><br>مكان لإجراء عمليات تركيبية بين الجنود والحاشية. يمكن هنا كتابة نصوص تفسيرية أو لصق نتائج التحليل.</div>`;
+    }
+    $('#modalBack').style.display = 'flex';
+    
+    // إضافة تفاعل لقراءة الرسالة السرية
+    const ttsBtn = $('#ttsMessage');
+    if (ttsBtn) {
+      ttsBtn.addEventListener('click', () => {
+        if (DATA.squareMessages && DATA.squareMessages[sqId]) {
+          speak(DATA.squareMessages[sqId].analysis.secretMessage);
+        }
+      });
+    }
+  }
+}
+
+/* اغلاق modal */
+$('#modalClose').addEventListener('click', () => $('#modalBack').style.display = 'none');
+$('#modalBack').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBack') $('#modalBack').style.display = 'none';
+});
+
+/* ---------- PGN parsing & mapping ---------- */
+function parsePGN(txt) {
+  let s = txt.replace(/\{[^}]*\}/g, '').replace(/\[[^\]]*\]/g, '').replace(/;.*$/gm, '').trim();
+  s = s.replace(/\d+\.\.\./g, '').trim();
+  const tokens = s.split(/\s+/).filter(Boolean);
+  return tokens;
+}
+
+function fileIndex(ch) {
+  return 'abcdefgh'.indexOf(ch.toLowerCase());
+}
+
+function rankToBit(r) {
+  return (r % 2) ? '1' : '0'; // odd rank => 1 (فرد) in our canonical mapping
+}
+
+function fileToBit(f) {
+  return ((f + 1) % 2) ? '1' : '0';
+}
+
+function sanToBits(san, idx) {
+  // خوارزمية مبسطة تحويل SAN -> 4 بت canon
+  const sq = san.match(/([a-h][1-8])/);
+  let destFile = null, destRank = null;
+  if (sq) {
+    destFile = fileIndex(sq[1][0]);
+    destRank = parseInt(sq[1][1], 10);
+  }
+  const capture = san.includes('x');
+  const pieceChar = san.match(/^[KQRBN]/) ? san[0] : 'P';
+  const bit1 = destRank ? rankToBit(destRank) : (idx % 2 ? '1' : '0');
+  const bit2 = destFile != null ? fileToBit(destFile) : ((idx + 1) % 2 ? '1' : '0');
+  const bit3 = capture ? '1' : '0';
+  const bit4 = (pieceChar === 'P') ? '1' : '0';
+  const bitsCanon = bit1 + bit2 + bit3 + bit4; // canonical (1=فرد) as used above
+  return bitsCanon;
+}
+
+$('#btnSample').addEventListener('click', () => $('#pgnText').value = `1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8`);
+$('#filePGN').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => $('#pgnText').value = r.result;
+  r.readAsText(f);
+});
+
+$('#analyzePGN').addEventListener('click', () => {
+  const txt = $('#pgnText').value || '';
+  if (!txt.trim()) {
+    alert('أدخل PGN');
+    return;
+  }
+  const toks = parsePGN(txt);
+  const log = $('#pgnLog');
+  log.innerHTML = '';
+  toks.forEach((san, i) => {
+    const bits = sanToBits(san, i);
+    const name = figByBits(bits) ? figByBits(bits)[1] : 'شكل غير معروف';
+    const rumalForm = findRumalFormByBits(bits);
+    const badge = badgeFromCanonical(bits);
+    const side = (i % 2 === 0) ? 'أبيض' : 'أسود';
+    const div = document.createElement('div');
+    div.className = 'small';
+    div.innerHTML = `<b>${i + 1}. ${san}</b> → <code>${bits}</code> ${badge} — ${name} ${rumalForm ? `<span style="color:#a78bfa">(${rumalForm.name})</span>` : ''}`;
+    log.appendChild(div);
+    // store last match for linking
+    window._lastPGNMatch = { i, san, bits, name, side };
+    // speak short summary
+    speak(`نقلة ${i + 1} ${side}: ${san}. رمز الرمل: ${name}.`);
+  });
+});
+
+/* ---------- حفظ واستيراد JSON ---------- */
+$('#exportBtn').addEventListener('click', () => {
+  saveLocal();
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'raml_chess_export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$('#importBtn').addEventListener('click', () => $('#jsonIn').click());
+
+$('#jsonIn').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      if (obj.figs) DATA.figs = obj.figs;
+      if (obj.transcript) DATA.transcript = obj.transcript;
+      saveLocal();
+      renderFigTable();
+      renderBoard();
+      renderHouses();
+      renderDivineNamesTable();
+      renderTakhtTable();
+      alert('تم الاستيراد');
+    } catch (err) {
+      alert('ملف غير صالح');
+    }
+  };
+  r.readAsText(f);
+});
+
+/* حفظ النص المجلوب من الفيديو */
+$('#applyTranscript').addEventListener('click', () => {
+  DATA.transcript = $('#videoTranscript').value.trim();
+  saveLocal();
+  alert('تم حفظ النص (Transcript) داخل القاعدة. سيظهر في الشرح الموسع.');
+});
+
+/* ---------- التهيئة الأولية ---------- */
+loadLocal();
+$('#videoTranscript').value = DATA.transcript || '';
+renderFigTable();
+renderBoard();
+renderHouses();
+renderDivineNamesTable();
+renderTakhtTable(); // إضافة جدول التخت
+
+/* ربط: عند حفظ SIXTEEN أو تحديث القاموس يجب إعادة العرض */
+function figByBits(bits) {
+  return DATA.figs.find(f => f[0] === bits);
+}
+
+/* ---------- توصيل إدخال سريع بالنقر على خانة الحاشية ---------- */
+$('#quickClear').addEventListener('click', () => $('#quickBits').value = '');
+$('#board').addEventListener('click', (ev) => {
+  // إذا كان هناك نص في quickBits ونقر المستخدم على خانة حاشية — ثبتها
+  const target = ev.target.closest('.sq');
+  if (!target) return;
+  const rank = parseInt(target.dataset.rank);
+  const file = parseInt(target.dataset.file);
+  // فقط إذا quickBits موجود و خانة حاشية:
+  const q = ($('#quickBits').value || '').trim();
+  if (/^[01]{4}$/.test(q) && (rank === 1 || rank === 8)) {
+    const canon = toCanonical(q);
+    const slot = (rank === 1 ? 0 : 8) + file;
+    SIXTEEN[slot] = canon;
+    saveLocal();
+    renderSixteen();
+    renderBoard();
+    logInfo(`ثبت الشكل ${canon} في ${FILES[file]}${rank}`);
+    $('#quickBits').value = '';
+    return;
+  }
+});
+
+// ربط أزرار وظائف الشجرة
+$('#fillEmptySquares').addEventListener('click', fillEmptySquaresWithRahmanTree);
+$('#analyzeAllWords').addEventListener('click', analyzeAllWords);
+
+/* تحديث الواجهة كلما تغيرت بيانات القاموس */
+function refreshAll() {
+  renderFigTable();
+  renderBoard();
+  renderHouses();
+  renderDivineNamesTable();
+  renderTakhtTable();
+  saveLocal();
+}
+
+/* تنفيذ تحديث عند تحميل الصفحة أو تغييرات */
+window.addEventListener('beforeunload', () => saveLocal());
+
+/* ---------- تفعيل/إيقاف قراءة AI ---------- */
+$('#ttsToggleBtn').addEventListener('click', () => {
+  ttsEnabled = !ttsEnabled;
+  $('#ttsStatus').textContent = ttsEnabled ? '(مُشغَل)' : '(متوقف)';
+  $('#ttsToggleBtn').textContent = ttsEnabled ? 'إيقاف قراءة AI' : 'تشغيل قراءة AI';
+});
+</script>
+</body>
+</html>
