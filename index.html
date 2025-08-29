@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -46,20 +47,45 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
 .btn{cursor:pointer}
 .rumal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;background:#e6eef6}
 .rumal-dot.double{width:12px}
-
 /* ألوان خاصة للحاشية (الصف 1 و8) */
 .sq[data-rank="1"], .sq[data-rank="8"]{border:1px solid var(--accent);box-shadow:0 0 6px rgba(34,211,238,0.2)}
 /* ألوان خاصة للجنود (الصف 2 و7) */
 .sq[data-rank="2"], .sq[data-rank="7"]{border:1px solid var(--accent2);box-shadow:0 0 6px rgba(167,139,250,0.2)}
 /* ألوان خاصة للساحة (الصفوف 3-6) */
 .sq[data-rank="3"], .sq[data-rank="4"], .sq[data-rank="5"], .sq[data-rank="6"]{opacity:0.8}
-
-/* رسائل شجرة الرحمن */
-.sq.rumal-message{animation:pulse 2s infinite}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(167,139,250,0.4)}
-  70%{box-shadow:0 0 0 10px rgba(167,139,250,0)}
-  100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}
+/* تصميم خاص للبلاطات التي تحتوي على رسائل الشجرة */
+.sq.rumal-message { animation: pulse 2s infinite; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(167,139,250,0); }
+  100% { box-shadow: 0 0 0 0 rgba(167,139,250,0); }
+}
+.rumal-pattern {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 4px 0;
+}
+.tree-analysis {
+  background: #0a1c2a;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+}
+.tree-analysis h4 {
+  margin: 0 0 8px 0;
+  color: #a78bfa;
+}
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.analysis-item {
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 8px;
 }
 </style>
 </head>
@@ -73,7 +99,6 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
       <label class="badge small">يحفظ محليًا</label>
     </div>
   </div>
-
   <div class="tabs" id="tabs">
     <div class="tab active" data-tab="input">المُدخلات</div>
     <div class="tab" data-tab="board">الرقعة</div>
@@ -81,31 +106,18 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
     <div class="tab" data-tab="pgn">تحليل PGN</div>
     <div class="tab" data-tab="about">حول & الطاووس</div>
   </div>
-
   <div class="container">
-
     <!-- INPUT -->
     <section class="card tabpane" data-pane="input">
       <h3>إدخال 0/1 (0 = فرد ، 1 = زوج)</h3>
-      <div class="help">أدخل 4 خانات (مثال: <span class="kbd">0101</span>). بعد الإدخال: انقر على خانة من الصف 1 أو 8 لتثبيت الشكل هناك. انقر مرتين لعرض الشرح الموسّع.</div>
-
+      <div class="help">أدخل 4 خانات (مثال: <span class="kbd">0101</span>). بعد الإدخال: انقر على خانة من الصف 1 أو 8 لتثبيت الشكل هناك. انقر مرتين لعرض الشرح الموسع.</div>
       <div class="row" style="margin-top:8px">
         <label>الوضع:</label>
-        <select id="parityMode">
-          <option value="odd0">0 = فرد (مستحسن)</option>
-          <option value="odd1">1 = زوج</option>
-        </select>
+        <select id="parityMode"><option value="odd0">0 = فرد (مستحسن)</option><option value="odd1">0 = زوج</option></select>
         <label class="small">المُدخل السريع:</label>
         <input id="quickBits" placeholder="مثال: 0101" maxlength="4" style="width:120px"/>
         <button id="quickClear">مسح</button>
       </div>
-
-      <!-- زر تشغيل/إيقاف القراءة الصوتية -->
-      <div class="row" style="margin-top:8px">
-        <button id="ttsToggleBtn" class="btn">تشغيل قراءة AI</button>
-        <span id="ttsStatus" class="small">(متوقف)</span>
-      </div>
-
       <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0">
       <h4>إنشاء البنية (الأمهات → 16 شكل)</h4>
       <div class="row">
@@ -114,16 +126,13 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
         <button id="resetMoms" class="btn">إعادة الضبط</button>
         <button id="build16" class="btn">توليد الـ16</button>
       </div>
-
       <div class="row" style="margin-top:8px">
         <button id="fillEmptySquares" class="btn">ملء الفراغات بشجرة الرحمن</button>
         <button id="analyzeAllWords" class="btn">تحليل جميع الكلمات</button>
       </div>
-
       <div id="momsRow" class="row" style="margin-top:8px;overflow:auto"></div>
       <div id="resRow" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
     </section>
-
     <!-- BOARD -->
     <section class="grid2">
       <div class="card tabpane" data-pane="board" style="min-height:520px">
@@ -133,35 +142,27 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
           <select id="pawnTheme"><option value="grain">🌾 قمح (مضاعفات)</option><option value="atom">⚛️ ذرّ (بتّات)</option></select>
           <label><input type="checkbox" id="ttsToggle" checked/> تفعيل الشطرنج الناطق (TTS)</label>
         </div>
-        <div class="help small" style="margin-top:6px">انقر على خانة من الصف 1 أو 8 بعد إدخال 4 خانات لإسقاط الشكل. انقر مرتين على خانة لفتح الشرح الموسّع.</div>
+        <div class="help small" style="margin-top:6px">انقر على خانة من الصف 1 أو 8 بعد إدخال 4 خانات لإسقاط الشكل. انقر مرتين على خانة لفتح الشرح الموسع.</div>
         <div class="chess" style="margin-top:10px">
           <div class="board" id="board"></div>
         </div>
       </div>
-
       <div class="card">
         <h3>أرضية المعلومات</h3>
         <div id="squareInfo" class="small">اختر خانة لعرض التفاصيل (الشكل/البيت/الرموز...)</div>
         <div style="margin-top:8px" id="infoLog" class="scroll small"></div>
       </div>
     </section>
-
     <!-- TABLES -->
     <section class="card tabpane" data-pane="tables" style="display:none">
       <h3>قاموس الأشكال & البيوت</h3>
       <div class="help small">يمكنك تعديل أي خلية ثم حفظ التغييرات.</div>
       <div id="figTableWrap" style="margin-top:10px"></div>
-
       <h4 style="margin-top:12px">البيوت 1–12 (توليد آلي بعد الـ16)</h4>
       <div id="houseTableWrap" style="margin-top:8px"></div>
-
       <h4 style="margin-top:12px">الأسماء الحسنى وارتباطها</h4>
       <div id="divineNamesTable" style="margin-top:8px"></div>
-
-      <h4 style="margin-top:12px">تخت (البنش) و إشاراته</h4>
-      <div id="takhtTableWrap" style="margin-top:8px"></div>
     </section>
-
     <!-- PGN -->
     <section class="card tabpane" data-pane="pgn" style="display:none">
       <h3>تحليل ملف PGN وفق الرمل</h3>
@@ -176,7 +177,6 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
       </div>
       <div id="pgnLog" class="scroll small" style="margin-top:8px"></div>
     </section>
-
     <!-- ABOUT -->
     <section class="card tabpane" data-pane="about" style="display:none">
       <h3>حول الربط بسلسلة الشيخ طاووس</h3>
@@ -187,15 +187,6 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
         <li>ترتبط الأشكال بالعناصر الأربعة (نار/تراب/هواء/ماء) وبكواكب/مؤثرات سماوية لتحديد الطابع.</li>
         <li>البيوت تُستخدم للإشارة إلى مجالات الحياة (نفس، مال، عمل، سفر، إلخ).</li>
         <li>توجد مدارس مختلفة (الزناتي، إدريس، محلية)؛ لذا التطبيق قابل للتعديل والاحتفاظ بوصفك الخاص.</li>
-        <li>الـ "تخت" (البنش) يُستخدم لتحديد المجالات الرئيسية في الحياة وفقًا لقيم الأرقام.</li>
-      </ul>
-      <h4>علم الرمل: استخداماته</h4>
-      <ul class="small">
-        <li>التنبؤ بالمستقبل: تحليل الأرقام لفهم الاتجاهات المستقبلية.</li>
-        <li>العلاج الروحي: استخدام الأسماء الحسنى والآيات القرآنية لعلاج المشاكل.</li>
-        <li>الاستشارة: مساعدة الأشخاص في اتخاذ القرارات المهمة.</li>
-        <li>التنمية الذاتية: فهم نقاط القوة والضعف في الشخص.</li>
-        <li>التوصل إلى الحكمة: من خلال تحليل الأرقام والرموز.</li>
       </ul>
       <h4>إضافة نص/Transcript للفيديو (لطاووس)</h4>
       <div class="small">لإدراج اقتباسات حرفية من الفيديو: الصق نص الـtranscript هنا وسيظهر داخل الشرح الموسّع عند الطلب.</div>
@@ -204,11 +195,9 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
         <button id="applyTranscript" class="btn">احفظ النص في القاعدة</button>
       </div>
     </section>
-
     <div class="footer">النسخة المكتملة — يمكنك تعديل القواميس داخل التطبيق. حفظ محلي: نعم. لا يتم إرسال بيانات للخارج.</div>
   </div>
 </div>
-
 <!-- Modal للشرح الموسع -->
 <div class="modal-back" id="modalBack">
   <div class="modal" id="modal">
@@ -219,7 +208,6 @@ input,select,textarea,button{background:#081823;border:1px solid rgba(255,255,25
     <div id="modalBody" style="margin-top:8px"></div>
   </div>
 </div>
-
 <input type="file" id="jsonIn" accept="application/json" style="display:none"/>
 <script>
 /* ---------- البيانات الأساسية ---------- */
@@ -465,7 +453,7 @@ const DIVINE_NAMES = [
     associatedForms: ["الميزان", "الثور", "الجدي"], 
     associatedHouse: 2,
     secretMessage: "السر: اطلب القسط في أفعالك وستجد العدل في كل تحركاتك" },
-  { name: "الجامع", abjad: 56, meaning: "الجامع لخلقه يوم القيامة", 
+  { name: "الجامع", abjad: 56, meaning: "الجامع لخلق يوم القيامة", 
     associatedForms: ["الحمل", "الدلو", "القوس"], 
     associatedHouse: 9,
     secretMessage: "السر: اطلب الجمع في أعمالك وستجد الاتساق في كل تحركاتك" },
@@ -582,7 +570,6 @@ const DEFAULT_FIGS = [
   ['1110','فورتيونا الكبرى','Fortuna Major','نار','الشمس','—','قوة','نصر وثبات'],
   ['0001','فورتيونا الصغرى','Fortuna Minor','نار','القمر','—','عابر','قوة مؤقتة']
 ];
-
 // تعريف أشكال الرمل الـ 16 مع تفاصيل إضافية
 const RUMAL_FORMS = [
   { 
@@ -730,7 +717,6 @@ const RUMAL_FORMS = [
     message: "كن حاسماً في قراراتك، استخدم قوتك بحكمة، واجه التحديات، تجنب العنف والعدوانية"
   }
 ];
-
 // تعريف المنازل الـ 12
 const HOUSES = [
   { number: 1, name: "الذات", element: "ناري", meaning: "الشخصية، المظهر، البدايات" },
@@ -746,7 +732,6 @@ const HOUSES = [
   { number: 11, name: "الأهداف", element: "هوائي", meaning: "الأصدقاء، الأهداف، الرغبات" },
   { number: 12, name: "الخفي", element: "مائي", meaning: "الأسرار، الخوف، الروحانية" }
 ];
-
 // تعريف المنازل القمرية الـ 28
 const MOON_MANSIONS = [
   { name: "الشرطان", letter: "أ", angle: 0, meaning: "بداية المشاريع الجديدة" },
@@ -778,174 +763,27 @@ const MOON_MANSIONS = [
   { name: "المؤخر", letter: "ظ", angle: 334.28, meaning: "إنهاء المراحل" },
   { name: "الرشاء", letter: "غ", angle: 347.14, meaning: "الرشد الإلهي" }
 ];
-
-// تعريف التخت (البنش) مع إشاراته وسوره وذكره وتوجيهه
-const TAKHTS = [
-  {
-    id: 1,
-    name: "التخت الأول",
-    abbreviation: "ت1",
-    description: "يُرمز إلى البداية والبدء في الأشياء",
-    signs: ["الحركة الجديدة", "الابتسامة", "الاستعداد"],
-    surahs: ["الفاتحة", "البقرة"],
-    adhkar: ["اللهم اجعلني من الذين يبدأون بخير", "اللهم ارزقني البداية الصالحة"],
-    guidance: "ابدأ كل عمل بذكر الله وابدأ بخطوة صغيرة",
-    associatedHouse: 1
-  },
-  {
-    id: 2,
-    name: "التخت الثاني",
-    abbreviation: "ت2",
-    description: "يُرمز إلى الاستقرار والثبات",
-    signs: ["الهدوء", "الاستقرار", "الثبات"],
-    surahs: ["آل عمران", "النساء"],
-    adhkar: ["اللهم اجعلني على الثبات", "اللهم ثبتني على طريقك"],
-    guidance: "كن ثابتًا في أفعالك وثق بربك",
-    associatedHouse: 2
-  },
-  {
-    id: 3,
-    name: "التخت الثالث",
-    abbreviation: "ت3",
-    description: "يُرمز إلى التواصل والاتصال",
-    signs: ["الكلام الجميل", "الاتصال", "الصداقة"],
-    surahs: ["المائدة", "الأنعام"],
-    adhkar: ["اللهم زدني في علمك", "اللهم سددني في كلامي"],
-    guidance: "استخدم كلامك للخير وابني علاقات قوية",
-    associatedHouse: 3
-  },
-  {
-    id: 4,
-    name: "التخت الرابع",
-    abbreviation: "ت4",
-    description: "يُرمز إلى العاطفة والذكريات",
-    signs: ["الحب", "الحنين", "الاهتمام"],
-    surahs: ["الأنبياء", "الروم"],
-    adhkar: ["اللهم اجعل قلبي ممتلئًا بالحب", "اللهم اجعلني أذكرك دائمًا"],
-    guidance: "ركز على علاقاتك الأسرية وكن حريصًا على مشاعرك",
-    associatedHouse: 4
-  },
-  {
-    id: 5,
-    name: "التخت الخامس",
-    abbreviation: "ت5",
-    description: "يُرمز إلى القيادة والإبداع",
-    signs: ["القيادة", "الإبداع", "الثقة"],
-    surahs: ["البقرة", "الإسراء"],
-    adhkar: ["اللهم اجعلني قائدًا صالحًا", "اللهم ارزقني الإبداع في عملك"],
-    guidance: "استخدم قوتك الإبداعية وكن قائدًا في مشاريعك",
-    associatedHouse: 5
-  },
-  {
-    id: 6,
-    name: "التخت السادس",
-    abbreviation: "ت6",
-    description: "يُرمز إلى الصحة والعمل",
-    signs: ["الصحة", "التنظيم", "الجدية"],
-    surahs: ["الأنعام", "الحجر"],
-    adhkar: ["اللهم اجعلني صحيًا", "اللهم اجعلني مُنظمًا في عملي"],
-    guidance: "ركز على صحتك ونظم وقتك بعناية",
-    associatedHouse: 6
-  },
-  {
-    id: 7,
-    name: "التخت السابع",
-    abbreviation: "ت7",
-    description: "يُرمز إلى العلاقات والشراكات",
-    signs: ["العلاقة", "الشراكة", "الثقة"],
-    surahs: ["البقرة", "الحجر"],
-    adhkar: ["اللهم اجعلني أثق بشركائي", "اللهم اجعلني أبني شراكات ناجحة"],
-    guidance: "ابني علاقات قوية وكن موثوقًا بها",
-    associatedHouse: 7
-  },
-  {
-    id: 8,
-    name: "التخت الثامن",
-    abbreviation: "ت8",
-    description: "يُرمز إلى التحول والموارد المشتركة",
-    signs: ["التحول", "الاستثمار", "التجدد"],
-    surahs: ["الأنفال", "البقرة"],
-    adhkar: ["اللهم اجعلني أستثمر في مواردي", "اللهم اجعلني قادرًا على التحول"],
-    guidance: "استعد للتغييرات وكن مستعدًا للاستثمار",
-    associatedHouse: 8
-  },
-  {
-    id: 9,
-    name: "التخت التاسع",
-    abbreviation: "ت9",
-    description: "يُرمز إلى السفر والفلسفة",
-    signs: ["السفر", "التفكير", "التعلم"],
-    surahs: ["التوبة", "النحل"],
-    adhkar: ["اللهم اجعلني أتعلم دائمًا", "اللهم اجعلني أستكشف العالم"],
-    guidance: "استكشف العالم وابحث عن الحكمة",
-    associatedHouse: 9
-  },
-  {
-    id: 10,
-    name: "التخت العاشر",
-    abbreviation: "ت10",
-    description: "يُرمز إلى السمعة والعمل",
-    signs: ["السمعة", "الجدارة", "الاحترام"],
-    surahs: ["البقرة", "النحل"],
-    adhkar: ["اللهم اجعلني مُحترمًا", "اللهم اجعلني أبني سمعة طيبة"],
-    guidance: "خطط لسمعتك المهنية وكن مُحترمًا",
-    associatedHouse: 10
-  },
-  {
-    id: 11,
-    name: "التخت الحادي عشر",
-    abbreviation: "ت11",
-    description: "يُرمز إلى الأصدقاء والأهداف",
-    signs: ["الأصدقاء", "الهدف", "الاستراتيجية"],
-    surahs: ["الأنبياء", "البقرة"],
-    adhkar: ["اللهم اجعلني أجد أصدقاء صالحين", "اللهم اجعلني أحقق أهدافي"],
-    guidance: "ابنِ صداقات قوية وحدد أهدافًا واضحة",
-    associatedHouse: 11
-  },
-  {
-    id: 12,
-    name: "التخت الثاني عشر",
-    abbreviation: "ت12",
-    description: "يُرمز إلى الخفاء والروحانية",
-    signs: ["الروحي", "السر", "التفكر"],
-    surahs: ["الأنبياء", "الروم"],
-    adhkar: ["اللهم اجعلني أتفكر في خلقي", "اللهم اجعلني أبحث عن الروحانية"],
-    guidance: "استكشف عالمك الروحي وابحث عن الأسرار",
-    associatedHouse: 12
-  }
-];
-
 let DATA = {
   figs: JSON.parse(JSON.stringify(DEFAULT_FIGS)),
   interpZ: '',
   interpI: '',
-  parityMode: 'odd1',
+  parityMode: 'odd0',
   pawnTheme: 'grain',
   transcript: '',
   squareMessages: {}
 };
-
-let ttsEnabled = false; // حالة تشغيل/إيقاف القراءة الصوتية
-
 /* ---------- أدوات صغيرة ---------- */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-
-function saveLocal() {
-  localStorage.setItem('raml_chess_v1', JSON.stringify(DATA));
-}
-
-function loadLocal() {
-  const j = localStorage.getItem('raml_chess_v1');
-  if (j) DATA = JSON.parse(j);
-}
+function saveLocal(){ localStorage.setItem('raml_chess_v1', JSON.stringify(DATA)); }
+function loadLocal(){ const j = localStorage.getItem('raml_chess_v1'); if(j) DATA=JSON.parse(j); }
 
 // حساب القيمة العددية (أبجد)
 function calculateAbjad(word) {
   const abjadMap = {
     'ا': 1, 'أ': 1, 'إ': 1, 'آ': 1, 'ء': 1,
     'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8, 'ط': 9,
-    'ي': 10, 'ى': 10, 'ك': 20, 'ل': 30, 'م': 40, 'ن': 50,
+    'ي': 10, 'ى': 10, 'ك': 20, 'ل': 30, 'м': 40, 'ن': 50,
     'س': 60, 'ع': 70, 'ف': 80, 'ص': 90, 'ق': 100, 'ر': 200,
     'ش': 300, 'ت': 400, 'ث': 500, 'خ': 600, 'ذ': 700, 'ض': 800,
     'ظ': 900, 'غ': 1000
@@ -1068,7 +906,7 @@ function analyzeAllWords() {
   
   for (let r = 3; r <= 6; r++) {
     for (let f = 0; f < 8; f++) {
-      const sqId = `${FILES[file]}${rank}`;
+      const sqId = `${FILES[f]}${r}`;
       if (DATA.squareMessages && DATA.squareMessages[sqId]) {
         const analysis = DATA.squareMessages[sqId].analysis;
         analysisResult += `<div style="margin-bottom:10px;padding:8px;background:#0a1c2a;border-radius:6px">
@@ -1089,45 +927,35 @@ function analyzeAllWords() {
   const body = $('#modalBody'); 
   $('#modalTitle').textContent = "تحليل جميع الكلمات";
   body.innerHTML = analysisResult;
-  $('#modalBack').style.display = 'flex';
+  $('#modalBack').style.display='flex';
 }
 
 /* ---------- تبويبات ---------- */
-$$('.tab').forEach(t => {
-  t.addEventListener('click', () => {
-    $$('.tab').forEach(x => x.classList.remove('active'));
+$$('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     const pane = t.dataset.tab;
-    $$('.tabpane').forEach(p => p.style.display = (p.dataset.pane === pane ? 'block' : 'none'));
+    $$('.tabpane').forEach(p=> p.style.display = (p.dataset.pane===pane?'block':'none'));
   });
 });
-
 /* ---------- parity (0=فرد,1=زوج) ---------- */
 $('#parityMode').value = DATA.parityMode;
-$('#parityMode').addEventListener('change', () => {
-  DATA.parityMode = $('#parityMode').value;
-  saveLocal();
-  renderPad();
-});
-
-function parityDisplay(bit) {
+$('#parityMode').addEventListener('change', ()=> { DATA.parityMode = $('#parityMode').value; saveLocal(); renderPad(); });
+function parityDisplay(bit){
   // mode odd0: 0 -> فرد (•) ; 1 -> زوج (••)
   const mode = $('#parityMode').value;
-  if (mode === 'odd0') return bit === '0' ? '•' : '••';
-  return bit === '1' ? '•' : '••';
+  if(mode==='odd0') return bit==='0' ? '•' : '••';
+  return bit==='1' ? '•' : '••';
 }
-
-function toCanonical(bits) {
-  // canon: 1 = فرد, 0 = زوج
+function toCanonical(bits){ // canon: 1 = فرد, 0 = زوج
   const mode = $('#parityMode').value;
-  if (mode === 'odd0') return bits.split('').map(b => b === '0' ? '1' : '0').join('');
+  if(mode==='odd0') return bits.split('').map(b=> b==='0' ? '1' : '0').join('');
   return bits;
 }
-
-function badgeFromCanonical(bits) {
-  return bits.split('').map(b => b === '1' ? '•' : '••').join(' ');
+function badgeFromCanonical(bits){
+  return bits.split('').map(b=> b==='1'?'•':'••').join(' ');
 }
-
 function renderRumalPattern(bits) {
   // تحويل البتات إلى نمط الرمل (نقط)
   const pattern = bits.split('').map(b => b === '1' ? 1 : 2);
@@ -1136,107 +964,66 @@ function renderRumalPattern(bits) {
       `<span class="rumal-dot ${dots === 2 ? 'double' : ''}"></span>`).join('')}</div>`;
   }).join('');
 }
-
 /* ---------- إدخال الأمهات ---------- */
 let moms = []; // stored canonical (1=فرد)
-function renderMoms() {
-  const wrap = $('#momsRow');
-  wrap.innerHTML = '';
-  moms.forEach((m, i) => {
-    const el = document.createElement('div');
-    el.className = 'piece';
-    el.style.margin = '4px';
-    el.style.padding = '6px';
-    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(m)}</div><div class="small">أم ${i + 1} — <code>${m}</code></div>`;
-    el.onclick = () => {
-      if (confirm('حذف أم؟')) {
-        moms.splice(i, 1);
-        renderMoms();
-      }
-    };
+function renderMoms(){
+  const wrap = $('#momsRow'); wrap.innerHTML='';
+  moms.forEach((m,i)=>{
+    const el = document.createElement('div'); el.className='piece';
+    el.style.margin='4px'; el.style.padding='6px';
+    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(m)}</div><div class="small">أم ${i+1} — <code>${m}</code></div>`;
+    el.onclick = ()=>{ if(confirm('حذف أم؟')) { moms.splice(i,1); renderMoms(); } };
     wrap.appendChild(el);
   });
 }
-
-$('#addFromInput').addEventListener('click', () => {
-  const v = ($('#quickBits').value || '').trim();
-  if (!/^[01]{4}$/.test(v)) {
-    alert('أدخل 4 خانات 0/1');
-    return;
-  }
-  moms.push(toCanonical(v));
+$('#addFromInput').addEventListener('click', ()=>{
+  const v = ($('#quickBits').value||'').trim();
+  if(!/^[01]{4}$/.test(v)){ alert('أدخل 4 خانات 0/1'); return; }
+  moms.push( toCanonical(v) ); renderMoms();
+});
+$('#randomMoms').addEventListener('click', ()=>{
+  while(moms.length < 4) moms.push( toCanonical(Array.from({length:4},()=>Math.random()>0.5?'1':'0').join('')) );
   renderMoms();
 });
-
-$('#randomMoms').addEventListener('click', () => {
-  while (moms.length < 4) moms.push(toCanonical(Array.from({ length: 4 }, () => Math.random() > 0.5 ? '1' : '0').join('')));
-  renderMoms();
-});
-
-$('#resetMoms').addEventListener('click', () => {
-  if (confirm('تفريغ الأمهات؟')) {
-    moms = [];
-    renderMoms();
-    $('#resRow').innerHTML = '';
-    SIXTEEN = [];
-    renderBoard();
-  }
-});
-
+$('#resetMoms').addEventListener('click', ()=> { if(confirm('تفريغ الأمهات؟')) { moms=[]; renderMoms(); $('#resRow').innerHTML=''; SIXTEEN=[]; renderBoard(); } });
 /* ---------- بناء الـ16 ---------- */
-function xor(a, b) {
-  return (Number(a) ^ Number(b)).toString();
-}
-
-function col(arr, i) {
-  return arr.map(x => x[i]).join('');
-}
-
-function build16(momsArr) {
-  if (momsArr.length !== 4) throw new Error('يلزم أربعة أمهات.');
+function xor(a,b){ return (Number(a)^Number(b)).toString(); }
+function col(arr,i){ return arr.map(x=> x[i]).join(''); }
+function build16(momsArr){
+  if(momsArr.length !== 4) throw new Error('يلزم أربعة أمهات.');
   const M = momsArr; // strings canonical (1=فرد)
-  const D = [0, 1, 2, 3].map(i => col(M, i)); // البنات
-  const N1 = M[0].split('').map((_, r) => xor(M[0][r], M[1][r])).join('');
-  const N2 = M[2].split('').map((_, r) => xor(M[2][r], M[3][r])).join('');
-  const N3 = D[0].split('').map((_, r) => xor(D[0][r], D[1][r])).join('');
-  const N4 = D[2].split('').map((_, r) => xor(D[2][r], D[3][r])).join('');
+  const D = [0,1,2,3].map(i=> col(M,i)); // البنات
+  const N1 = M[0].split('').map((_,r)=> xor(M[0][r], M[1][r])).join('');
+  const N2 = M[2].split('').map((_,r)=> xor(M[2][r], M[3][r])).join('');
+  const N3 = D[0].split('').map((_,r)=> xor(D[0][r], D[1][r])).join('');
+  const N4 = D[2].split('').map((_,r)=> xor(D[2][r], D[3][r])).join('');
   const W1 = N1, W2 = N2;
-  const J = W1.split('').map((_, r) => xor(W1[r], W2[r])).join('');
-  const all = [...M, ...D, N1, N2, N3, N4, W1, W2, J].slice(0, 16);
+  const J  = W1.split('').map((_,r)=> xor(W1[r], W2[r])).join('');
+  const all = [...M, ...D, N1, N2, N3, N4, W1, W2, J].slice(0,16);
   return all;
 }
-
 let SIXTEEN = [];
-
-$('#build16').addEventListener('click', () => {
-  try {
+$('#build16').addEventListener('click', ()=>{
+  try{
     SIXTEEN = build16(moms);
     renderSixteen();
     renderBoard();
     logInfo('تم توليد الـ16 شكل.');
-  } catch (e) {
-    alert(e.message);
-  }
+  }catch(e){ alert(e.message); }
 });
-
-function renderSixteen() {
-  const wrap = $('#resRow');
-  wrap.innerHTML = '';
-  SIXTEEN.forEach((b, i) => {
-    const f = figByBits(b) || ['????', 'غير معروف', '?', '?', '?', '?', '?', '?'];
-    const el = document.createElement('div');
-    el.className = 'piece';
-    el.style.margin = '4px';
-    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(b)}</div><div class="small">#${i + 1} — <b>${f[1]}</b> <code>${b}</code></div>`;
+function renderSixteen(){
+  const wrap = $('#resRow'); wrap.innerHTML='';
+  SIXTEEN.forEach((b,i)=>{
+    const f = figByBits(b) || ['????','غير معروف','?','?','?','?','?','?'];
+    const el = document.createElement('div'); el.className='piece'; el.style.margin='4px';
+    el.innerHTML = `<div style="font-weight:800">${badgeFromCanonical(b)}</div><div class="small">#${i+1} — <b>${f[1]}</b> <code>${b}</code></div>`;
     wrap.appendChild(el);
   });
 }
-
 /* ---------- القاموس والبيوت ---------- */
-function figByBits(bits) {
-  return DATA.figs.find(f => f[0] === bits);
+function figByBits(bits){
+  return DATA.figs.find(f=> f[0]===bits);
 }
-
 function findRumalFormByBits(bits) {
   // محاولة العثور على شكل الرمل المطابق
   const pattern = bits.split('').map(b => b === '1' ? 1 : 2);
@@ -1247,53 +1034,42 @@ function findRumalFormByBits(bits) {
     return true;
   });
 }
-
-function renderFigTable() {
-  const wrap = $('#figTableWrap');
-  wrap.innerHTML = '';
-  const tbl = document.createElement('table');
-  tbl.className = 'table';
-  const hdr = document.createElement('tr');
-  hdr.innerHTML = '<th>#</th><th>bits</th><th>الاسم العربي</th><th>لاتيني</th><th>العنصر</th><th>الكوكب</th><th>البرج</th><th>طبيعة</th><th>ملاحظة</th>';
+function renderFigTable(){
+  const wrap = $('#figTableWrap'); wrap.innerHTML='';
+  const tbl = document.createElement('table'); tbl.className='table';
+  const hdr = document.createElement('tr'); hdr.innerHTML = '<th>#</th><th>bits</th><th>الاسم العربي</th><th>لاتيني</th><th>العنصر</th><th>الكوكب</th><th>البرج</th><th>طبيعة</th><th>ملاحظة</th>';
   tbl.appendChild(hdr);
-  DATA.figs.forEach((f, i) => {
+  DATA.figs.forEach((f,i)=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td>` + f.map((c, j) => `<td contenteditable data-i="${i}" data-j="${j}">${c}</td>`).join('');
+    tr.innerHTML = `<td>${i+1}</td>` + f.map((c,j)=> `<td contenteditable data-i="${i}" data-j="${j}">${c}</td>`).join('');
     tbl.appendChild(tr);
   });
   wrap.appendChild(tbl);
-  tbl.querySelectorAll('[contenteditable]').forEach(td => {
-    td.addEventListener('blur', () => {
-      const i = +td.dataset.i, j = +td.dataset.j;
-      DATA.figs[i][j] = td.textContent.trim();
-      saveLocal();
-      renderSixteen();
-      renderBoard();
+  tbl.querySelectorAll('[contenteditable]').forEach(td=>{
+    td.addEventListener('blur', ()=> {
+      const i = +td.dataset.i, j = +td.dataset.j; DATA.figs[i][j] = td.textContent.trim(); saveLocal();
+      renderSixteen(); renderBoard();
     });
   });
   saveLocal();
 }
-
-function renderHouses() {
+function renderHouses(){
   // بسيط: المنزل 1..12 = أول 12 من SIXTEEN إن وجدت
-  const wrap = $('#houseTableWrap');
-  wrap.innerHTML = '';
-  const tbl = document.createElement('table');
-  tbl.className = 'table';
-  const hdr = document.createElement('tr');
-  hdr.innerHTML = '<th>بيت</th><th>شكل</th><th>الاسم</th><th>العنصر</th><th>الرسالة</th>';
+  const wrap = $('#houseTableWrap'); wrap.innerHTML='';
+  const tbl = document.createElement('table'); tbl.className='table';
+  const hdr = document.createElement('tr'); hdr.innerHTML = '<th>بيت</th><th>شكل</th><th>الاسم</th><th>العنصر</th><th>الرسالة</th>';
   tbl.appendChild(hdr);
-  for (let i = 0; i < 12; i++) {
+  for(let i=0;i<12;i++){
     const bits = SIXTEEN[i] || '';
-    const f = bits ? (figByBits(bits) || ['', '', '', '', '', '', '', '']) : ['', 'فارغ', '---', '', '', '', '', ''];
+    const f = bits ? (figByBits(bits) || ['','','','','','','','']) : ['', 'فارغ','---','','','','',''];
     const rumalForm = bits ? findRumalFormByBits(bits) : null;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td><td>${bits ? badgeFromCanonical(bits) : '—'}</td><td>${f[1] || '—'}</td><td>${f[3] || '—'}</td><td contenteditable data-house="${i}">${rumalForm ? rumalForm.message : '—'}</td>`;
+    tr.innerHTML = `<td>${i+1}</td><td>${bits?badgeFromCanonical(bits):'—'}</td><td>${f[1]||'—'}</td><td>${f[3]||'—'}</td><td contenteditable data-house="${i}">${rumalForm ? rumalForm.message : '—'}</td>`;
     tbl.appendChild(tr);
   }
   wrap.appendChild(tbl);
-  tbl.querySelectorAll('[contenteditable]').forEach(td => {
-    td.addEventListener('blur', () => saveLocal());
+  tbl.querySelectorAll('[contenteditable]').forEach(td=>{
+    td.addEventListener('blur', ()=> saveLocal());
   });
 }
 
@@ -1312,7 +1088,7 @@ function renderDivineNamesTable() {
       </tr>
       ${DIVINE_NAMES.map((name, i) => `
         <tr>
-          <td>${i + 1}</td>
+          <td>${i+1}</td>
           <td>${name.name}</td>
           <td>${name.abjad}</td>
           <td>${name.meaning}</td>
@@ -1323,85 +1099,42 @@ function renderDivineNamesTable() {
     </table>
   `;
 }
-
-// عرض جدول التخت
-function renderTakhtTable() {
-  const wrap = $('#takhtTableWrap');
-  wrap.innerHTML = `
-    <table class="table">
-      <tr>
-        <th>الاختصار</th>
-        <th>الاسم</th>
-        <th>الوصف</th>
-        <th>الإشارات</th>
-        <th>السور</th>
-        <th>الأذكار</th>
-        <th>التوجيه</th>
-      </tr>
-      ${TAKHTS.map(takht => `
-        <tr>
-          <td>${takht.abbreviation}</td>
-          <td>${takht.name}</td>
-          <td>${takht.description}</td>
-          <td>${takht.signs.join(", ")}</td>
-          <td>${takht.surahs.join(", ")}</td>
-          <td>${takht.adhkar.join(", ")}</td>
-          <td>${takht.guidance}</td>
-        </tr>
-      `).join('')}
-    </table>
-  `;
-}
-
 /* ---------- الرقعة ---------- */
-const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const whiteBack = ['رخ', 'حصان', 'فيل', 'وزير', 'ملك', 'فيل', 'حصان', 'رخ'];
+const FILES = ['a','b','c','d','e','f','g','h'];
+const whiteBack = ['رخ','حصان','فيل','وزير','ملك','فيل','حصان','رخ'];
 const blackBack = [...whiteBack];
-
-function pawnLabel(fileIndex, isWhite) {
-  if ($('#pawnTheme').value === 'grain') {
+function pawnLabel(fileIndex, isWhite){
+  if($('#pawnTheme').value === 'grain'){
     const val = 1 << fileIndex;
     return `🌾 ${val}`;
   }
-  const bits = ('00000000' + (1 << fileIndex).toString(2)).slice(-8);
+  const bits = ('00000000' + (1<<fileIndex).toString(2)).slice(-8);
   return `⚛️ ${bits}`;
 }
-
-function initialPieceAt(rank, file) {
-  if (rank === 2) return { side: 'أبيض', piece: 'جندي', label: pawnLabel(file, true) };
-  if (rank === 7) return { side: 'أسود', piece: 'جندي', label: pawnLabel(file, false) };
-  if (rank === 1) return { side: 'أبيض', piece: whiteBack[file] };
-  if (rank === 8) return { side: 'أسود', piece: blackBack[file] };
+function initialPieceAt(rank,file){
+  if(rank===2) return {side:'أبيض',piece:'جندي',label:pawnLabel(file,true)};
+  if(rank===7) return {side:'أسود',piece:'جندي',label:pawnLabel(file,false)};
+  if(rank===1) return {side:'أبيض',piece:whiteBack[file]};
+  if(rank===8) return {side:'أسود',piece:blackBack[file]};
   return null;
 }
-
-function logInfo(txt) {
-  const log = $('#infoLog');
-  const d = document.createElement('div');
-  d.textContent = `${(new Date()).toLocaleTimeString()} — ${txt}`;
-  log.prepend(d);
+function logInfo(txt){
+  const log = $('#infoLog'); const d = document.createElement('div'); d.textContent = `${(new Date()).toLocaleTimeString()} — ${txt}`; log.prepend(d);
 }
-
-function speak(txt) {
-  if (!ttsEnabled) return;
-  try {
-    const u = new SpeechSynthesisUtterance(txt);
-    u.lang = 'ar-SA';
-    speechSynthesis.speak(u);
-  } catch (e) {}
+function speak(txt){
+  if(!$('#ttsToggle').checked) return;
+  try{ const u = new SpeechSynthesisUtterance(txt); u.lang='ar-SA'; speechSynthesis.speak(u);}catch(e){}
 }
-
 /* لوحة الرمز */
-function renderBoard() {
-  const board = $('#board');
-  board.innerHTML = '';
-  for (let r = 8; r >= 1; r--) {
-    for (let f = 0; f < 8; f++) {
-      const sq = document.createElement('div');
-      sq.className = 'sq ' + (((r + f) % 2 === 0) ? 'light' : 'dark');
+function renderBoard(){
+  const board = $('#board'); board.innerHTML='';
+  for(let r=8;r>=1;r--){
+    for(let f=0; f<8; f++){
+      const sq = document.createElement('div'); 
+      sq.className = 'sq ' + (((r+f)%2===0)?'light':'dark');
       sq.dataset.rank = r;
       sq.dataset.file = f;
-      const piece = initialPieceAt(r, f);
+      const piece = initialPieceAt(r,f);
       const sqId = `${FILES[f]}${r}`;
       
       // تحديد ما إذا كانت هذه البلاطة تحتوي على رسالة من شجرة الرحمن
@@ -1412,10 +1145,10 @@ function renderBoard() {
         sq.classList.add('rumal-message');
       }
       
-      if ((r === 1 || r === 8) && piece) { // حاشية — نعرض شكل إذا وُجد في SIXTEEN
-        const idx = (r === 1 ? 0 : 8) + f;
+      if((r===1||r===8) && piece){ // حاشية — نعرض شكل إذا وُجد في SIXTEEN
+        const idx = (r===1?0:8) + f;
         const bits = SIXTEEN[idx];
-        if (bits) {
+        if(bits){
           const meta = figByBits(bits) || ['','','','','','','',''];
           const rumalForm = findRumalFormByBits(bits);
           sq.innerHTML = `<div class="piece" data-bits="${bits}" data-rank="${r}" data-file="${f}">
@@ -1426,7 +1159,7 @@ function renderBoard() {
         } else {
           sq.innerHTML = `<div class="piece" data-rank="${r}" data-file="${f}"><div class="small">فارغ</div></div>`;
         }
-      } else if (piece && piece.piece === 'جندي') {
+      } else if(piece && piece.piece==='جندي'){
         sq.innerHTML = `<div class="piece" data-pawn="1" data-side="${piece.side}" data-rank="${r}" data-file="${f}">
           <div>${piece.label}</div>
           <div class="small">${piece.side} — جندي</div>
@@ -1445,60 +1178,37 @@ function renderBoard() {
           sq.innerHTML = '';
         }
       }
-      
       // تفاعل: نقرة واحدة + نقرة مزدوجة
       let clickTimer = null;
-      sq.addEventListener('click', (ev) => {
-        if (clickTimer == null) {
-          clickTimer = setTimeout(() => {
-            clickTimer = null;
-            onSquareClick(r, f);
-          }, 250);
+      sq.addEventListener('click', (ev)=>{
+        if(clickTimer==null){
+          clickTimer = setTimeout(()=>{ clickTimer=null; onSquareClick(r,f); }, 250);
         }
       });
-      sq.addEventListener('dblclick', (ev) => {
-        if (clickTimer) {
-          clearTimeout(clickTimer);
-          clickTimer = null;
-        }
-        onSquareDoubleClick(r, f);
+      sq.addEventListener('dblclick', (ev)=>{
+        if(clickTimer){ clearTimeout(clickTimer); clickTimer=null; }
+        onSquareDoubleClick(r,f);
       });
       board.appendChild(sq);
     }
   }
 }
-
 /* النقر: عرض موجز */
-function onSquareClick(rank, file) {
+function onSquareClick(rank,file){
   const sqId = `${FILES[file]}${rank}`;
-  const piece = initialPieceAt(rank, file);
-  if (rank === 1 || rank === 8) {
-    const idx = (rank === 1 ? 0 : 8) + file;
-    const bits = SIXTEEN[idx];
-    if (!bits) {
-      $('#squareInfo').innerHTML = `الخانة ${sqId} — لا يوجد شكل مثبت هنا.`;
-      return;
-    }
+  const piece = initialPieceAt(rank,file);
+  if(rank===1||rank===8){
+    const idx = (rank===1?0:8) + file; const bits = SIXTEEN[idx];
+    if(!bits){ $('#squareInfo').innerHTML = `الخانة ${sqId} — لا يوجد شكل مثبت هنا.`; return; }
     const meta = figByBits(bits) || ['','','','','','','',''];
     const rumalForm = findRumalFormByBits(bits);
-    $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — حاشية</div><div><b>الشكل:</b> ${badgeFromCanonical(bits)} <code>${bits}</code></div><div><b>الاسم:</b> ${meta[1] || '—'}</div><div class="small"><b>عنصر/كوكب:</b> ${meta[3] || '—'} / ${meta[4] || '—'}</div>`;
+    $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — حاشية</div><div><b>الشكل:</b> ${badgeFromCanonical(bits)} <code>${bits}</code></div><div><b>الاسم:</b> ${meta[1] || '—'}</div><div class="small"><b>عنصر/كوكب:</b> ${meta[3]||'—'} / ${meta[4]||'—'}</div>`;
     if (rumalForm) {
       $('#squareInfo').innerHTML += `<div class="small"><b>شكل الرمل:</b> ${rumalForm.name} (${rumalForm.element})</div>`;
     }
-    
-    // إضافة معلومات التخت
-    const takht = TAKHTS.find(t => t.associatedHouse === (idx % 12) + 1);
-    if (takht) {
-      $('#squareInfo').innerHTML += `<div class="small"><b>التخت:</b> ${takht.abbreviation} - ${takht.name}</div>`;
-      $('#squareInfo').innerHTML += `<div class="small"><b>الإشارات:</b> ${takht.signs.join(', ')}</div>`;
-      $('#squareInfo').innerHTML += `<div class="small"><b>السور:</b> ${takht.surahs.join(', ')}</div>`;
-      $('#squareInfo').innerHTML += `<div class="small"><b>الأذكار:</b> ${takht.adhkar.join(', ')}</div>`;
-      $('#squareInfo').innerHTML += `<div class="small"><b>التوجيه:</b> ${takht.guidance}</div>`;
-    }
-    
     logInfo(`حاشية ${sqId}: ${meta[1] || 'شكل غير معروف'}`);
     speak(`في الخانة ${sqId} شكل ${meta[1] || 'مجهول'}.`);
-  } else if (piece && piece.piece === 'جندي') {
+  } else if(piece && piece.piece==='جندي'){
     $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — جندي (${piece.side})</div><div>${piece.label}</div>`;
     logInfo(`جندي ${sqId}: ${piece.label}`);
     speak(`الجندي في ${sqId}: ${piece.label}`);
@@ -1513,39 +1223,24 @@ function onSquareClick(rank, file) {
         <div class="small"><b>الرسالة السرية:</b></div>
         <div class="small" style="color:#a78bfa;white-space:normal">${msg.analysis.secretMessage}</div>
       `;
-      
-      // إضافة معلومات التخت
-      const takht = TAKHTS.find(t => t.associatedHouse === (rank % 12) + 1);
-      if (takht) {
-        $('#squareInfo').innerHTML += `<div class="small"><b>التخت:</b> ${takht.abbreviation} - ${takht.name}</div>`;
-        $('#squareInfo').innerHTML += `<div class="small"><b>الإشارات:</b> ${takht.signs.join(', ')}</div>`;
-        $('#squareInfo').innerHTML += `<div class="small"><b>السور:</b> ${takht.surahs.join(', ')}</div>`;
-        $('#squareInfo').innerHTML += `<div class="small"><b>الأذكار:</b> ${takht.adhkar.join(', ')}</div>`;
-        $('#squareInfo').innerHTML += `<div class="small"><b>التوجيه:</b> ${takht.guidance}</div>`;
-      }
     } else {
       $('#squareInfo').innerHTML = `<div><b>الخانة:</b> ${sqId} — ساحة التشجير (فارغة)</div><div class="small">استخدم زر "ملء الفراغات بشجرة الرحمن" لملء هذه الفراغات برسائل سرية.</div>`;
       logInfo(`الساحة ${sqId} — فارغة.`);
     }
   }
 }
-
 /* النقر المزدوج: فتح modal مُفصل */
-function onSquareDoubleClick(rank, file) {
+function onSquareDoubleClick(rank,file){
   const sqId = `${FILES[file]}${rank}`;
-  const piece = initialPieceAt(rank, file);
-  const modal = $('#modal');
-  const body = $('#modalBody');
-  $('#modalTitle').textContent = `شرح مفصّل — ${sqId}`;
+  const piece = initialPieceAt(rank,file);
+  const modal = $('#modal'); const body = $('#modalBody'); $('#modalTitle').textContent = `شرح مفصّل — ${sqId}`;
   body.innerHTML = '';
-
-  if (rank === 1 || rank === 8) {
-    const idx = (rank === 1 ? 0 : 8) + file;
-    const bits = SIXTEEN[idx];
-    if (!bits) {
+  if(rank===1||rank===8){
+    const idx = (rank===1?0:8) + file; const bits = SIXTEEN[idx];
+    if(!bits){ 
       body.innerHTML = `<div class="small">لا يوجد شكل مثبت هنا. أدخل 4 خانات في الحقل أعلاه ثم اضغط هنا لتثبيت.</div>`;
-      $('#modalBack').style.display = 'flex';
-      return;
+      $('#modalBack').style.display='flex'; 
+      return; 
     }
     const meta = figByBits(bits) || ['','','','','','','',''];
     const rumalForm = findRumalFormByBits(bits);
@@ -1558,8 +1253,8 @@ function onSquareDoubleClick(rank, file) {
         <div>
           <div><b>الاسم:</b> ${meta[1] || '—'} (${meta[2] || '—'})</div>
           <div><b>bits:</b> <code>${bits}</code></div>
-          <div><b>العنصر / الكوكب:</b> ${meta[3] || '—'} / ${meta[4] || '—'}</div>
-          <div><b>الطبيعة:</b> ${meta[6] || '—'}</div>
+          <div><b>العنصر / الكوكب:</b> ${meta[3]||'—'} / ${meta[4]||'—'}</div>
+          <div><b>الطبيعة:</b> ${meta[6]||'—'}</div>
         </div>
       </div>
       <div style="margin-top:10px">
@@ -1584,20 +1279,17 @@ function onSquareDoubleClick(rank, file) {
         <button id="linkMove" class="btn">ربط بنقلة من آخر تحليل PGN</button>
       </div>
       <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:8px 0">
-      <div class="small"><b>نصوص ومراجع:</b><div id="modalRefs">${(DATA.transcript || '') ? DATA.transcript : '<i>لم تُضمّن اقتباسات حرفية بعد.</i>'}</div></div>
+      <div class="small"><b>نصوص ومراجع:</b><div id="modalRefs">${(DATA.transcript||'') ? DATA.transcript : '<i>لم تُضمّن اقتباسات حرفية بعد.</i>'}</div></div>
     `;
-    $('#modalBack').style.display = 'flex';
-    $('#ttsModal').addEventListener('click', () => speak(`شرح الشكل ${meta[1] || 'غير معروف'}. ${rumalForm ? rumalForm.message : ''}`));
-    $('#linkMove').addEventListener('click', () => {
-      if (window._lastPGNMatch) {
-        alert('مربوط بنقلة: ' + window._lastPGNMatch.san + ' → ' + window._lastPGNMatch.bits);
-      } else {
-        alert('لا توجد نقلة محللة حديثًا لربطها.');
-      }
+    $('#modalBack').style.display='flex';
+    $('#ttsModal').addEventListener('click', ()=> speak(`شرح الشكل ${meta[1]||'غير معروف'}: ${meta[7]||'لا تفسير.'}`));
+    $('#linkMove').addEventListener('click', ()=> {
+      if(window._lastPGNMatch){ alert('مربوط بنقلة: ' + window._lastPGNMatch.san + ' → ' + window._lastPGNMatch.bits); }
+      else alert('لا توجد نقلة محللة حديثًا لربطها.');
     });
-  } else if (piece && piece.piece === 'جندي') {
+  } else if(piece && piece.piece==='جندي'){
     body.innerHTML = `<div class="small"><b>جندي ${piece.side} في ${sqId}</b><br>قيمة/رمز: ${piece.label}<br>يمكن ربط هذا الجندي بمخرجات تشجير ليعطي رسالة عند التحليل.</div>`;
-    $('#modalBack').style.display = 'flex';
+    $('#modalBack').style.display='flex';
   } else {
     // إذا كانت البلاطة تحتوي على رسالة من شجرة الرحمن
     if (DATA.squareMessages && DATA.squareMessages[sqId]) {
@@ -1650,7 +1342,7 @@ function onSquareDoubleClick(rank, file) {
     } else {
       body.innerHTML = `<div class="small"><b>ساحة التشجير — ${sqId}</b><br>مكان لإجراء عمليات تركيبية بين الجنود والحاشية. يمكن هنا كتابة نصوص تفسيرية أو لصق نتائج التحليل.</div>`;
     }
-    $('#modalBack').style.display = 'flex';
+    $('#modalBack').style.display='flex';
     
     // إضافة تفاعل لقراءة الرسالة السرية
     const ttsBtn = $('#ttsMessage');
@@ -1663,130 +1355,73 @@ function onSquareDoubleClick(rank, file) {
     }
   }
 }
-
 /* اغلاق modal */
-$('#modalClose').addEventListener('click', () => $('#modalBack').style.display = 'none');
-$('#modalBack').addEventListener('click', (e) => {
-  if (e.target.id === 'modalBack') $('#modalBack').style.display = 'none';
-});
-
+$('#modalClose').addEventListener('click', ()=> $('#modalBack').style.display='none');
+$('#modalBack').addEventListener('click', (e)=>{ if(e.target.id==='modalBack') $('#modalBack').style.display='none'; });
 /* ---------- PGN parsing & mapping ---------- */
-function parsePGN(txt) {
-  let s = txt.replace(/\{[^}]*\}/g, '').replace(/\[[^\]]*\]/g, '').replace(/;.*$/gm, '').trim();
-  s = s.replace(/\d+\.\.\./g, '').trim();
+function parsePGN(txt){
+  let s = txt.replace(/\{[^}]*\}/g,'').replace(/\[[^\]]*\]/g,'').replace(/;.*$/gm,'').trim();
+  s = s.replace(/\d+\.\.\./g,'').trim();
   const tokens = s.split(/\s+/).filter(Boolean);
   return tokens;
 }
-
-function fileIndex(ch) {
-  return 'abcdefgh'.indexOf(ch.toLowerCase());
-}
-
-function rankToBit(r) {
-  return (r % 2) ? '1' : '0'; // odd rank => 1 (فرد) in our canonical mapping
-}
-
-function fileToBit(f) {
-  return ((f + 1) % 2) ? '1' : '0';
-}
-
-function sanToBits(san, idx) {
+function fileIndex(ch){ return 'abcdefgh'.indexOf(ch.toLowerCase()); }
+function rankToBit(r){ return (r%2)?'1':'0'; } // odd rank => 1 (فرد) in our canonical mapping
+function fileToBit(f){ return ((f+1)%2)?'1':'0'; }
+function sanToBits(san, idx){
   // خوارزمية مبسطة تحويل SAN -> 4 بت canon
   const sq = san.match(/([a-h][1-8])/);
-  let destFile = null, destRank = null;
-  if (sq) {
-    destFile = fileIndex(sq[1][0]);
-    destRank = parseInt(sq[1][1], 10);
-  }
+  let destFile=null, destRank=null; if(sq){ destFile = fileIndex(sq[1][0]); destRank = parseInt(sq[1][1],10); }
   const capture = san.includes('x');
   const pieceChar = san.match(/^[KQRBN]/) ? san[0] : 'P';
-  const bit1 = destRank ? rankToBit(destRank) : (idx % 2 ? '1' : '0');
-  const bit2 = destFile != null ? fileToBit(destFile) : ((idx + 1) % 2 ? '1' : '0');
+  const bit1 = destRank ? rankToBit(destRank) : (idx%2?'1':'0');
+  const bit2 = destFile!=null ? fileToBit(destFile) : ((idx+1)%2?'1':'0');
   const bit3 = capture ? '1' : '0';
-  const bit4 = (pieceChar === 'P') ? '1' : '0';
+  const bit4 = (pieceChar==='P') ? '1' : '0';
   const bitsCanon = bit1 + bit2 + bit3 + bit4; // canonical (1=فرد) as used above
   return bitsCanon;
 }
-
-$('#btnSample').addEventListener('click', () => $('#pgnText').value = `1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8`);
-$('#filePGN').addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const r = new FileReader();
-  r.onload = () => $('#pgnText').value = r.result;
+$('#btnSample').addEventListener('click', ()=> $('#pgnText').value = `1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8`);
+$('#filePGN').addEventListener('change', (e)=> {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ()=> $('#pgnText').value = r.result;
   r.readAsText(f);
 });
-
-$('#analyzePGN').addEventListener('click', () => {
-  const txt = $('#pgnText').value || '';
-  if (!txt.trim()) {
-    alert('أدخل PGN');
-    return;
-  }
+$('#analyzePGN').addEventListener('click', ()=>{
+  const txt = $('#pgnText').value || ''; if(!txt.trim()){ alert('أدخل PGN'); return; }
   const toks = parsePGN(txt);
-  const log = $('#pgnLog');
-  log.innerHTML = '';
-  toks.forEach((san, i) => {
+  const log = $('#pgnLog'); log.innerHTML='';
+  toks.forEach((san,i)=>{
     const bits = sanToBits(san, i);
     const name = figByBits(bits) ? figByBits(bits)[1] : 'شكل غير معروف';
     const rumalForm = findRumalFormByBits(bits);
     const badge = badgeFromCanonical(bits);
-    const side = (i % 2 === 0) ? 'أبيض' : 'أسود';
-    const div = document.createElement('div');
-    div.className = 'small';
-    div.innerHTML = `<b>${i + 1}. ${san}</b> → <code>${bits}</code> ${badge} — ${name} ${rumalForm ? `<span style="color:#a78bfa">(${rumalForm.name})</span>` : ''}`;
+    const side = (i%2===0)?'أبيض':'أسود';
+    const div = document.createElement('div'); div.className='small';
+    div.innerHTML = `<b>${i+1}. ${san}</b> → <code>${bits}</code> ${badge} — ${name} ${rumalForm ? `<span style="color:#a78bfa">(${rumalForm.name})</span>` : ''}`;
     log.appendChild(div);
     // store last match for linking
-    window._lastPGNMatch = { i, san, bits, name, side };
+    window._lastPGNMatch = {i, san, bits, name, side};
     // speak short summary
-    speak(`نقلة ${i + 1} ${side}: ${san}. رمز الرمل: ${name}.`);
+    speak(`نقلة ${i+1} ${side}: ${san}. رمز الرمل: ${name}.`);
   });
 });
-
 /* ---------- حفظ واستيراد JSON ---------- */
-$('#exportBtn').addEventListener('click', () => {
-  saveLocal();
-  const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'raml_chess_export.json';
-  a.click();
-  URL.revokeObjectURL(url);
+$('#exportBtn').addEventListener('click', ()=>{
+  saveLocal(); const blob = new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='raml_chess_export.json'; a.click(); URL.revokeObjectURL(url);
 });
-
-$('#importBtn').addEventListener('click', () => $('#jsonIn').click());
-
-$('#jsonIn').addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const obj = JSON.parse(r.result);
-      if (obj.figs) DATA.figs = obj.figs;
-      if (obj.transcript) DATA.transcript = obj.transcript;
-      saveLocal();
-      renderFigTable();
-      renderBoard();
-      renderHouses();
-      renderDivineNamesTable();
-      renderTakhtTable();
-      alert('تم الاستيراد');
-    } catch (err) {
-      alert('ملف غير صالح');
-    }
-  };
-  r.readAsText(f);
+$('#importBtn').addEventListener('click', ()=> $('#jsonIn').click());
+$('#jsonIn').addEventListener('change', (e)=> {
+  const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{
+    try{ const obj = JSON.parse(r.result); if(obj.figs) DATA.figs = obj.figs; if(obj.transcript) DATA.transcript = obj.transcript; saveLocal(); renderFigTable(); renderBoard(); renderHouses(); alert('تم الاستيراد'); }
+    catch(err){ alert('ملف غير صالح'); }
+  }; r.readAsText(f);
 });
-
 /* حفظ النص المجلوب من الفيديو */
-$('#applyTranscript').addEventListener('click', () => {
-  DATA.transcript = $('#videoTranscript').value.trim();
-  saveLocal();
-  alert('تم حفظ النص (Transcript) داخل القاعدة. سيظهر في الشرح الموسع.');
+$('#applyTranscript').addEventListener('click', ()=> {
+  DATA.transcript = $('#videoTranscript').value.trim(); saveLocal(); alert('تم حفظ النص (Transcript) داخل القاعدة. سيظهر في الشرح الموسع.');
 });
-
 /* ---------- التهيئة الأولية ---------- */
 loadLocal();
 $('#videoTranscript').value = DATA.transcript || '';
@@ -1794,33 +1429,23 @@ renderFigTable();
 renderBoard();
 renderHouses();
 renderDivineNamesTable();
-renderTakhtTable(); // إضافة جدول التخت
 
 /* ربط: عند حفظ SIXTEEN أو تحديث القاموس يجب إعادة العرض */
-function figByBits(bits) {
-  return DATA.figs.find(f => f[0] === bits);
-}
-
+function figByBits(bits){ return DATA.figs.find(f=> f[0]===bits); }
 /* ---------- توصيل إدخال سريع بالنقر على خانة الحاشية ---------- */
-$('#quickClear').addEventListener('click', () => $('#quickBits').value = '');
-$('#board').addEventListener('click', (ev) => {
+$('#quickClear').addEventListener('click', ()=> $('#quickBits').value='');
+$('#board').addEventListener('click', (ev)=> {
   // إذا كان هناك نص في quickBits ونقر المستخدم على خانة حاشية — ثبتها
   const target = ev.target.closest('.sq');
-  if (!target) return;
+  if(!target) return;
   const rank = parseInt(target.dataset.rank);
   const file = parseInt(target.dataset.file);
   // فقط إذا quickBits موجود و خانة حاشية:
-  const q = ($('#quickBits').value || '').trim();
-  if (/^[01]{4}$/.test(q) && (rank === 1 || rank === 8)) {
+  const q = ($('#quickBits').value||'').trim();
+  if(/^[01]{4}$/.test(q) && (rank===1 || rank===8)){
     const canon = toCanonical(q);
-    const slot = (rank === 1 ? 0 : 8) + file;
-    SIXTEEN[slot] = canon;
-    saveLocal();
-    renderSixteen();
-    renderBoard();
-    logInfo(`ثبت الشكل ${canon} في ${FILES[file]}${rank}`);
-    $('#quickBits').value = '';
-    return;
+    const slot = (rank===1?0:8) + file;
+    SIXTEEN[slot] = canon; saveLocal(); renderSixteen(); renderBoard(); logInfo(`ثبت الشكل ${canon} في ${FILES[file]}${rank}`); $('#quickBits').value=''; return;
   }
 });
 
@@ -1829,24 +1454,9 @@ $('#fillEmptySquares').addEventListener('click', fillEmptySquaresWithRahmanTree)
 $('#analyzeAllWords').addEventListener('click', analyzeAllWords);
 
 /* تحديث الواجهة كلما تغيرت بيانات القاموس */
-function refreshAll() {
-  renderFigTable();
-  renderBoard();
-  renderHouses();
-  renderDivineNamesTable();
-  renderTakhtTable();
-  saveLocal();
-}
-
+function refreshAll(){ renderFigTable(); renderBoard(); renderHouses(); saveLocal(); }
 /* تنفيذ تحديث عند تحميل الصفحة أو تغييرات */
-window.addEventListener('beforeunload', () => saveLocal());
-
-/* ---------- تفعيل/إيقاف قراءة AI ---------- */
-$('#ttsToggleBtn').addEventListener('click', () => {
-  ttsEnabled = !ttsEnabled;
-  $('#ttsStatus').textContent = ttsEnabled ? '(مُشغَل)' : '(متوقف)';
-  $('#ttsToggleBtn').textContent = ttsEnabled ? 'إيقاف قراءة AI' : 'تشغيل قراءة AI';
-});
+window.addEventListener('beforeunload', ()=> saveLocal());
 </script>
 </body>
 </html>
